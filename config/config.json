@@ -1,0 +1,17 @@
+{
+  "main": {
+    "csv_df_list": []
+
+  },
+  "selection_df": {
+    "columns": ["Date", "Close", "Open", "Volume","High", "Low"],
+    "feat_list": ["Close", "Open"],
+    "label": "actual_next_day_rt",
+    "start_date_train_list": ["2000-01-01", "2001-01-01"],
+    "end_date_train_list": ["2010-01-01", "2011-01-01"],
+    "start_date_train": "2005-01-01",
+    "end_date_train": "2015-01-01",
+    "start_date_test": "2015-02-01",
+    "end_date_test": "2018-02-01"
+  }
+}
