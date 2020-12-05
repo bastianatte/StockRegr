@@ -2,4 +2,5 @@
 .venv/
 data/
 output/
+config/
 __pycache__/
