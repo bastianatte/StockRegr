@@ -1,6 +1,6 @@
 from utils.misc import get_logger
-from config.config import main_conf as mc
-from config.config import ranking_conf as rc
+from config import main_conf as mc
+from config import ranking_conf as rc
 import pandas as pd
 import logging
 

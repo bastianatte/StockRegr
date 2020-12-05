@@ -4,13 +4,12 @@ import fnmatch
 import logging
 import os
 import pandas as pd
-from config.config import main_conf as mc
+from config import main_conf as mc
 
 from classes.df_selection import preprocess_df
 from utils.misc import get_logger, create_folder, create_each_stock_folder, store_csv
 from utils.ranking import rank_exe
 from classes.models import Models
-from classes.Plotter import Plotter
 
 parser = argparse.ArgumentParser(description="Load flag to run StockRegression")
 parser.add_argument('-i', '--input', type=str, metavar='', required=True,

@@ -1,4 +1,4 @@
-from config.config import main_conf as mc
+from config import main_conf as mc
 import logging
 from utils.misc import get_logger
 
