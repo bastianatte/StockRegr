@@ -32,7 +32,7 @@ utils_log = get_logger(__name__)
 utils_log.setLevel(logging.INFO)
 
 
-def create_each_stock_folder(arg_input, csv_file):
+def csv_maker(arg_input, csv_file):
     """
     Produce the csv location and stock name string
     by looking at the folder name.
@@ -69,6 +69,7 @@ def store_csv(df, path, csv_name):
     :param csv_name: csv name
     :return: None
     """
+
     csv_loc = os.path.join(path, csv_name + ".csv")
-    print(csv_loc, df.shape)
+    df.name = csv_name
     df.to_csv(csv_loc)
