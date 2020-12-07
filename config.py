@@ -7,6 +7,14 @@ main_conf = {
     "train_end": dt.datetime.strptime("2015-01-01", "%Y-%m-%d"),
     "test_start": dt.datetime.strptime("2015-03-01", "%Y-%m-%d"),
     "test_end": dt.datetime.strptime("2018-02-01", "%Y-%m-%d"),
+    "train_window": [
+        (dt.datetime.strptime("2000-01-01", "%Y-%m-%d"), dt.datetime.strptime("2010-01-01", "%Y-%m-%d")),
+        (dt.datetime.strptime("2001-01-01", "%Y-%m-%d"), dt.datetime.strptime("2011-01-01", "%Y-%m-%d")),
+        (dt.datetime.strptime("2002-01-01", "%Y-%m-%d"), dt.datetime.strptime("2012-01-01", "%Y-%m-%d")),
+        (dt.datetime.strptime("2003-01-01", "%Y-%m-%d"), dt.datetime.strptime("2013-01-01", "%Y-%m-%d")),
+        (dt.datetime.strptime("2004-01-01", "%Y-%m-%d"), dt.datetime.strptime("2014-01-01", "%Y-%m-%d")),
+        (dt.datetime.strptime("2005-01-01", "%Y-%m-%d"), dt.datetime.strptime("2015-01-01", "%Y-%m-%d")),
+    ],
     "ticker": "ticker",
     "date_clm": "Date",
     "rf_clm_name": "rf_pred_next_day_rt",
@@ -24,3 +32,16 @@ ranking_conf = {
     "short_share": 0.5,
     "rank_df": ["Date", "long_short_profit", "daily_profit"],
 }
+
+plot_conf = {
+    "general_csv": "general",
+    "pred_csv": "pred",
+    "profit_csv": "profit",
+    "rf_csv": "rf",
+    "lr_csv": "lr",
+    "long_csv": "long",
+    "short_csv": "short",
+    "daily_profit": "daily_profit",
+    "plot_dir": "plot",
+}
+
