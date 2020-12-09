@@ -42,10 +42,10 @@ def long_short_profit(long, short, lsp):
     :param lsp: long short profit
     :return: long df, short df, lsp
     """
-    # long_daily_profit = (long[mc["actual_day_rt_clm"]]).mean()
-    # short_daily_profit = ((-1) * short[mc["actual_day_rt_clm"]]).mean()
-    long_daily_profit = (long[mc["label"]]).mean()
-    short_daily_profit = ((-1) * short[mc["label"]]).mean()
+    long_daily_profit = (long[mc["actual_day_rt_clm"]]).mean()
+    short_daily_profit = ((-1) * short[mc["actual_day_rt_clm"]]).mean()
+    # long_daily_profit = (long[mc["label"]]).mean()
+    # short_daily_profit = ((-1) * short[mc["label"]]).mean()
     daily_profit = rc["long_share"] * long_daily_profit + rc["short_share"] * short_daily_profit
     lsp += daily_profit
     return daily_profit, lsp
