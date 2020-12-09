@@ -6,3 +6,4 @@ config/
 /__pycache__/
 config/__pycache__/config.cpython-36.pyc
 config.cpython-36.pyc
+run.sh
