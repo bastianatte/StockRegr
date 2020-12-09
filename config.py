@@ -30,7 +30,7 @@ main_conf = {
     "rf_clm_name": "rf_pred_next_day_rt",
     "lr_clm_name": "lr_pred_next_day_rt",
     "actual_day_rt_clm": "actual_day_rt",
-    "features": ["Close", "Open"],
+    "features": ["Close", "Open", "Volume", "High", "Low"],
     "label": "actual_next_day_rt",
     "daily_profit_clm": "daily_profit",
     "ls_profit_clm": "long_short_profit",
