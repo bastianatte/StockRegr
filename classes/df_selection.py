@@ -16,7 +16,7 @@ def preprocess_df(df, csv_string):
     :param csv_string: stock name string
     """
     df = df[mc["columns"]]
-    seldf_log.info("{} with shape: {}".format(csv_string, df.shape))
+    # seldf_log.info("{} with shape: {}".format(csv_string, df.shape))
     df = create_actual_day_rt(df)
     df = create_next_day_return(df)
     df = create_ticker(df, csv_string)
