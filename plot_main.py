@@ -4,7 +4,7 @@ import fnmatch
 import logging
 import argparse
 from utils.misc import create_folder
-from utils.plot import make_multiple_profit_plot
+from utils.plot import make_multiple_profit_plot, make_multiple_profit_plot_ranking
 from config import main_conf as mc
 from config import plot_conf as pc
 from classes.Plotter import Plotter
@@ -24,7 +24,7 @@ parser.add_argument('-o', '--output', type=str, metavar='', required=True,
 args = parser.parse_args()
 
 
-def plotting_singular_df(inpt, output):
+def plot_exe(inpt, output):
     """
     Create a general full_df by looping over
     csv files located by input flag.
@@ -84,17 +84,40 @@ def multiple_profit_plot(df_list, output):
     :param output: output path
     :return: None
     """
+    logger.info("in multiple profit plots")
     dfs_profit_list = []
     for item in df_list:
         df = item[0]
         df_name = item[1]
-        print(df.shape, df_name)
         if pc["daily_profit"] in df.columns.to_list():
             dfs_profit_list.append((df, df_name))
-    make_multiple_profit_plot(dfs_profit_list, output)
+    rf_list, lr_list = create_list_of_same_models(dfs_profit_list)
+    make_multiple_profit_plot(dfs_profit_list, "total_daily_profit", output)
+    make_multiple_profit_plot_ranking(dfs_profit_list, output)
+    make_multiple_profit_plot(rf_list, "rf_daily_profit", output)
+    make_multiple_profit_plot(lr_list, "lr_daily_profit", output)
+
+
+def create_list_of_same_models(df_list):
+    """
+    It split the df list in as many list
+    as used models.
+    :param df_list:
+    :return: list
+    """
+    rf = []
+    lr = []
+    for item in df_list:
+        df = item[0]
+        df_name = item[1]
+        if "lr" in df_name:
+            lr.append((df, df_name))
+        else:
+            rf.append((df, df_name))
+    return rf, lr
 
 
 if __name__ == '__main__':
     logger.info("~~~### WELL DONE, plot section is now ACTIVE ###~~~")
     logger.info("in plot main")
-    dfs = plotting_singular_df(args.input, args.output)
+    dfs = plot_exe(args.input, args.output)
