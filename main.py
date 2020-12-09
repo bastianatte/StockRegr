@@ -4,7 +4,7 @@ import logging
 import os
 import pandas as pd
 from config import main_conf as mc
-
+import time
 from classes.df_selection import preprocess_df
 from utils.misc import get_logger, create_folder, csv_maker, store_csv
 from utils.ranking import rank_exe
@@ -17,12 +17,9 @@ parser.add_argument('-i', '--input', type=str, metavar='', required=True,
 parser.add_argument('-o', '--output', type=str, metavar='', required=True,
                     help='Specify the output path'
                     )
-# declare logger
+args = parser.parse_args()
 logger = get_logger(__name__)
 logger.setLevel(logging.DEBUG)
-logger.info("Reading config file")
-# args parser
-args = parser.parse_args()
 
 
 def create_df(ipt):
@@ -48,76 +45,108 @@ def create_df(ipt):
     return df
 
 
-def filter_df(df, stock_name, start, end):
+def filter_df(df, stock_name, start_date, end_date):
     """
     It filter the df looking at the start
     and end date (datetime object).
     :param df: pandas dataframe
     :param stock_name: string stock name
-    :param start: start date
-    :param end: end date
+    :param start_date: start date
+    :param end_date: end date
     :return: pandas dataframe
     """
-    df = df[(df[mc["ticker"]] == stock_name) & (df[mc["date_clm"]] > start) & (df[mc["date_clm"]] < end)]
+    df = df[(df[mc["ticker"]] == stock_name) &
+            (df[mc["date_clm"]] > start_date) &
+            (df[mc["date_clm"]] < end_date)]
     return df
 
 
-def split_df(filtered_df, stock_name, start, end):
+def split_df(filtered_df, stock_name, date_start, date_end):
     """
     It split the df in x and y subset by looking
     at the dates (datetime).
     :param filtered_df: pandas dataframe to split
     :param stock_name: string stock name
-    :param start: start date
-    :param end: end date
+    :param date_start: start date
+    :param date_end: end date
     :return: 
     """
-    df_splitted = filter_df(filtered_df, stock_name, start, end)
+    df_splitted = filter_df(filtered_df, stock_name, date_start, date_end)
     x = df_splitted[mc["features"]]
     y = df_splitted[mc["label"]]
     return df_splitted, x, y
 
 
+def make_threshold_lenght(year_start, year_end, test_wind):
+    """
+    Return the minimun lenght to apply regression models.
+    :param year_start: train year start
+    :param year_end: train year end
+    :param test_wind: test windows
+    :return: threshold lenght
+    """
+    days_in_year = 250
+    return ((year_end - year_start) * 250) + (test_wind * days_in_year)
+
+
 if __name__ == '__main__':
     logger.info("in main")
+    # all_dfs_list = []
     df_pred_list = []
-    bad_df_list = []
+    wnd_cnt = 1
     dataframe = create_df(args.input)
+    start = time.time()
+    logger.info("{} train windows.".format(len(mc["train_window"])))
+    test_window = mc["test_end"].year - mc["test_start"].year
     for window in mc["train_window"]:
+        window_start = time.time()
+        bad_df_list = []
         year_from = window[0].year
         year_to = window[1].year
-        logger.info("### Time windows: from {} to {}".format(year_from, year_to))
+        thresh_raw = make_threshold_lenght(year_from, year_to, test_window)
+        logger.info("Time windows #{}: from {} to {}".format(wnd_cnt, year_from, year_to))
+        wnd_cnt += 1
         for stock in set(dataframe[mc["ticker"]].values):
             df_stock_train, x_train, y_train = split_df(
                 dataframe,
                 stock,
-                start=window[0],
-                end=window[1])
+                date_start=window[0],
+                date_end=window[1])
             df_stock_test, x_test, y_test = split_df(
                 dataframe,
                 stock,
                 mc["test_start"],
                 mc["test_end"])
-            if len(df_stock_train) + len(df_stock_test) < 3000:
+            # if len(df_stock_train) + len(df_stock_test) < 2700:
+            if len(df_stock_train) + len(df_stock_test) < thresh_raw:
                 bad_df_list.append(stock)
-                # logger.info("{} skip due to not enough data.".format(stock))
                 continue
-            # logger.info("{} with shape: {}".format(stock, df_stock_train.shape[0]))
             # Apply models
-            mod = Models(x_train, y_train, x_test, y_test)
+            mod = Models(x_train, y_train, x_test)
             pred_rf = mod.random_forest()
             pred_lr = mod.linear_model()
             df_pred = df_stock_test.copy()
-            df_pred[mc["rf_clm_name"]] = pred_rf
             df_pred[mc["lr_clm_name"]] = pred_lr
+            df_pred[mc["rf_clm_name"]] = pred_rf
             df_pred_list.append(df_pred)
-        logger.info("{} bad stocks over {}  ".format(len(bad_df_list), len(dataframe[mc["ticker"]].values)))
+        stop = time.time()
+        logger.info("{} bad stocks over {}".format(
+            len(bad_df_list),
+            len(set(dataframe[mc["ticker"]].values))))
+        logger.info("Total run time: {}, model run time: {}".format(
+            (stop-start)/60,
+            (stop-window_start)/60))
         # concatenation to a single pred df
         dataframe_pred = pd.concat(df_pred_list)
         # a ranking for a model
         df_pred_rf_long, df_pred_rf_short, profit_rf_df = rank_exe(dataframe_pred, mc["rf_clm_name"])
         df_pred_lr_long, df_pred_lr_short, profit_lr_df = rank_exe(dataframe_pred, mc["lr_clm_name"])
-
+        # all_dfs_list.append([
+        #     dataframe, dataframe_pred,
+        #     df_pred_rf_long, df_pred_rf_short,
+        #     df_pred_lr_long, df_pred_lr_short,
+        #     profit_rf_df, profit_lr_df])
+        # print(len(all_dfs_list), all_dfs_list)
         # storing csv
         path_csv = create_folder(args.output, "csv")
         store_csv(df_pred_rf_long, path_csv, f"rf_long-{year_from}-{year_to}")
@@ -128,4 +157,3 @@ if __name__ == '__main__':
         store_csv(dataframe, path_csv, f"general-{year_from}-{year_to}")
         store_csv(profit_rf_df, path_csv, f"profit_rf-{year_from}-{year_to}")
         store_csv(profit_lr_df, path_csv, f"profit_lr-{year_from}-{year_to}")
-
