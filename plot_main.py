@@ -4,7 +4,7 @@ import fnmatch
 import logging
 import argparse
 from utils.misc import create_folder
-from utils.plot import make_multiple_profit_plot, make_multiple_profit_plot_ranking
+from classes.profit_plotter import profit_plotter
 from config import main_conf as mc
 from config import plot_conf as pc
 from classes.Plotter import Plotter
@@ -92,10 +92,13 @@ def multiple_profit_plot(df_list, output):
         if pc["daily_profit"] in df.columns.to_list():
             dfs_profit_list.append((df, df_name))
     rf_list, lr_list = create_list_of_same_models(dfs_profit_list)
-    make_multiple_profit_plot(dfs_profit_list, "total_daily_profit", output)
-    make_multiple_profit_plot_ranking(dfs_profit_list, output)
-    make_multiple_profit_plot(rf_list, "rf_daily_profit", output)
-    make_multiple_profit_plot(lr_list, "lr_daily_profit", output)
+    pp = profit_plotter(dfs_profit_list, "total", output)
+    pp.make_multiple_profit_plot()
+    pp.make_multiple_profit_plot_ranking()
+    pp_rf = profit_plotter(rf_list, "random_forest_profit", output)
+    pp_rf.make_multiple_profit_plot()
+    pp_lr = profit_plotter(lr_list, "linear_regress", output)
+    pp_lr.make_multiple_profit_plot()
 
 
 def create_list_of_same_models(df_list):
