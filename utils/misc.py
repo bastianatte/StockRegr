@@ -73,3 +73,41 @@ def store_csv(df, path, csv_name):
     csv_loc = os.path.join(path, csv_name + ".csv")
     df.name = csv_name
     df.to_csv(csv_loc)
+
+
+def asc_sort_tuple(tup):
+    """
+    It loop over the tuple and sort it
+    ascending by looking at the second
+    item.
+    :param tup: tuple list
+    :return: sorted tuple list
+    """
+    lst = len(tup)
+    for i in range(0, lst):
+        for j in range(0, lst - i - 1):
+            if tup[j][1] > tup[j + 1][1]:
+                temp = tup[j]
+                tup[j] = tup[j + 1]
+                tup[j + 1] = temp
+    return tup
+
+
+def disc_sort_tuple(tup):
+    """
+    It loop over the tuple and sort it
+    descending by looking at the second
+    item.
+    :param tup: tuple list
+    :return: sorted tuple list
+    """
+    lst = len(tup)
+    for i in range(0, lst):
+        for j in range(0, lst - i - 1):
+            if tup[j][1] < tup[j + 1][1]:
+                temp = tup[j]
+                tup[j] = tup[j + 1]
+                tup[j + 1] = temp
+    return tup
+
+
