@@ -97,9 +97,9 @@ def create_test_df(train_end):
     :param train_end: Training end date
     :return: Test start date, test end date
     """
-    test_start = train_end + timedelta(days=1)
-    test_end = test_start + timedelta(days=365)
-    return test_start, test_end
+    test_start_date = train_end + timedelta(days=1)
+    test_end_date = test_start_date + timedelta(days=365)
+    return test_start_date, test_end_date
 
 
 if __name__ == '__main__':
@@ -171,4 +171,3 @@ if __name__ == '__main__':
         store_csv(profit_lr_df, path_csv, f"profit_lr-{year_from}-{year_to}")
         del dataframe_pred
         del profit_rf_df
-

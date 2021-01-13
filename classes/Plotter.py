@@ -47,5 +47,3 @@ class Plotter(object):
         figname = os.path.join(self.output, "cum_profit" + ".png")
         plt.savefig(figname, dpi=200)
         plt.close()
-
-

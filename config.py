@@ -3,8 +3,6 @@ import datetime as dt
 
 main_conf = {
     "columns": ["Date", "Close", "Open", "Volume", "High", "Low"],
-    # "test_start": dt.datetime.strptime("2017-02-01", "%Y-%m-%d"),
-    # "test_end": dt.datetime.strptime("2018-02-01", "%Y-%m-%d"),
     "train_window": [
         (dt.datetime.strptime("2000-01-01", "%Y-%m-%d"), dt.datetime.strptime("2010-01-01", "%Y-%m-%d")),
         (dt.datetime.strptime("2001-01-01", "%Y-%m-%d"), dt.datetime.strptime("2011-01-01", "%Y-%m-%d")),
@@ -44,4 +42,3 @@ plot_conf = {
     "daily_profit": "daily_profit",
     "plot_dir": "plot",
 }
-

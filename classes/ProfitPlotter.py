@@ -2,9 +2,6 @@ from utils.misc import get_logger, disc_sort_tuple
 import matplotlib.pyplot as plt
 from config import plot_conf as pc
 import os
-import datetime
-import pandas as pd
-import numpy as np
 import logging
 
 plotter_log = get_logger(__name__)
@@ -41,16 +38,13 @@ class ProfitPlotter(object):
         it shows cumulative plots.
         :return: None
         """
-        temp_list = []
         for item in self.df_list:
             df = item[0]
             df_name = item[1]
             if pc["rf_csv"] in str(df_name):
                 color = "red"
-                tag = "rf"
             else:
                 color = "green"
-                tag = "lr"
             plt.plot(df.index,
                      df["shifted_long_short_profit"], '-',
                      label=df_name, marker="", color=color)

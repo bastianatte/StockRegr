@@ -3,7 +3,7 @@ import os
 import fnmatch
 import logging
 import argparse
-from utils.misc import create_folder, asc_sort_tuple, disc_sort_tuple
+from utils.misc import create_folder, asc_sort_tuple
 from classes.ProfitPlotter import ProfitPlotter
 from config import main_conf as mc
 from config import plot_conf as pc
