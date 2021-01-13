@@ -6,6 +6,7 @@ import pandas as pd
 from config import main_conf as mc
 import time
 from classes.df_selection import preprocess_df
+from datetime import timedelta
 from utils.misc import get_logger, create_folder, csv_maker, store_csv
 from utils.ranking import rank_exe
 from classes.models import Models
@@ -89,22 +90,37 @@ def make_threshold_lenght(year_start, year_end, test_wind):
     return ((year_end - year_start) * 250) + (test_wind * days_in_year)
 
 
+def create_test_df(train_end):
+    """
+    Calcuate test windows for the walkforward
+    procedure.
+    :param train_end: Training end date
+    :return: Test start date, test end date
+    """
+    test_start = train_end + timedelta(days=1)
+    test_end = test_start + timedelta(days=365)
+    return test_start, test_end
+
+
 if __name__ == '__main__':
     logger.info("in main")
-    # all_dfs_list = []
     df_pred_list = []
     wnd_cnt = 1
     dataframe = create_df(args.input)
     start = time.time()
     logger.info("{} train windows.".format(len(mc["train_window"])))
-    test_window = mc["test_end"].year - mc["test_start"].year
+
     for window in mc["train_window"]:
+        df_pred_list.clear()
         window_start = time.time()
         bad_df_list = []
         year_from = window[0].year
         year_to = window[1].year
+        test_start, test_end = create_test_df(window[1])
+        test_window = test_end.year - test_start.year
         thresh_raw = make_threshold_lenght(year_from, year_to, test_window)
-        logger.info("Time windows #{}: from {} to {}".format(wnd_cnt, year_from, year_to))
+        logger.info("#### Time windows #{}: Train from {} to {}"
+                    "#### Test from : {} to {}".format(wnd_cnt, year_from, year_to, test_start, test_end))
         wnd_cnt += 1
         for stock in set(dataframe[mc["ticker"]].values):
             df_stock_train, x_train, y_train = split_df(
@@ -115,19 +131,20 @@ if __name__ == '__main__':
             df_stock_test, x_test, y_test = split_df(
                 dataframe,
                 stock,
-                mc["test_start"],
-                mc["test_end"])
-            # if len(df_stock_train) + len(df_stock_test) < 2700:
+                test_start,
+                test_end)
             if len(df_stock_train) + len(df_stock_test) < thresh_raw:
                 bad_df_list.append(stock)
                 continue
             # Apply models
+            # print("train ", stock,  df_stock_test.iloc[0, 0], df_stock_test.iloc[0, 0], df_stock_train.shape)
             mod = Models(x_train, y_train, x_test)
             pred_rf = mod.random_forest()
             pred_lr = mod.linear_model()
             df_pred = df_stock_test.copy()
             df_pred[mc["lr_clm_name"]] = pred_lr
             df_pred[mc["rf_clm_name"]] = pred_rf
+
             df_pred_list.append(df_pred)
         stop = time.time()
         logger.info("{} bad stocks over {}".format(
@@ -141,19 +158,17 @@ if __name__ == '__main__':
         # a ranking for a model
         df_pred_rf_long, df_pred_rf_short, profit_rf_df = rank_exe(dataframe_pred, mc["rf_clm_name"])
         df_pred_lr_long, df_pred_lr_short, profit_lr_df = rank_exe(dataframe_pred, mc["lr_clm_name"])
-        # all_dfs_list.append([
-        #     dataframe, dataframe_pred,
-        #     df_pred_rf_long, df_pred_rf_short,
-        #     df_pred_lr_long, df_pred_lr_short,
-        #     profit_rf_df, profit_lr_df])
-        # print(len(all_dfs_list), all_dfs_list)
-        # storing csv
+
+        # # storing csv
         path_csv = create_folder(args.output, "csv")
+        store_csv(dataframe, path_csv, f"general-{year_from}-{year_to}")
         store_csv(df_pred_rf_long, path_csv, f"rf_long-{year_from}-{year_to}")
         store_csv(df_pred_rf_short, path_csv, f"rf_short-{year_from}-{year_to}")
         store_csv(df_pred_lr_long, path_csv, f"lr_long-{year_from}-{year_to}")
         store_csv(df_pred_lr_short, path_csv, f"lr_short-{year_from}-{year_to}")
         store_csv(dataframe_pred, path_csv, f"pred-{year_from}-{year_to}")
-        store_csv(dataframe, path_csv, f"general-{year_from}-{year_to}")
         store_csv(profit_rf_df, path_csv, f"profit_rf-{year_from}-{year_to}")
         store_csv(profit_lr_df, path_csv, f"profit_lr-{year_from}-{year_to}")
+        del dataframe_pred
+        del profit_rf_df
+
