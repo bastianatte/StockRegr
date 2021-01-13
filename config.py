@@ -3,8 +3,8 @@ import datetime as dt
 
 main_conf = {
     "columns": ["Date", "Close", "Open", "Volume", "High", "Low"],
-    "test_start": dt.datetime.strptime("2017-02-01", "%Y-%m-%d"),
-    "test_end": dt.datetime.strptime("2018-02-01", "%Y-%m-%d"),
+    # "test_start": dt.datetime.strptime("2017-02-01", "%Y-%m-%d"),
+    # "test_end": dt.datetime.strptime("2018-02-01", "%Y-%m-%d"),
     "train_window": [
         (dt.datetime.strptime("2000-01-01", "%Y-%m-%d"), dt.datetime.strptime("2010-01-01", "%Y-%m-%d")),
         (dt.datetime.strptime("2001-01-01", "%Y-%m-%d"), dt.datetime.strptime("2011-01-01", "%Y-%m-%d")),
@@ -14,16 +14,6 @@ main_conf = {
         (dt.datetime.strptime("2005-01-01", "%Y-%m-%d"), dt.datetime.strptime("2015-01-01", "%Y-%m-%d")),
         (dt.datetime.strptime("2006-01-01", "%Y-%m-%d"), dt.datetime.strptime("2016-01-01", "%Y-%m-%d")),
         (dt.datetime.strptime("2007-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
-        (dt.datetime.strptime("2007-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
-        (dt.datetime.strptime("2006-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
-        (dt.datetime.strptime("2005-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
-        (dt.datetime.strptime("2004-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
-        (dt.datetime.strptime("2003-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
-        (dt.datetime.strptime("2002-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
-        (dt.datetime.strptime("2001-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
-        (dt.datetime.strptime("2000-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
-        (dt.datetime.strptime("1999-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
-        (dt.datetime.strptime("1998-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
     ],
     "ticker": "ticker",
     "date_clm": "Date",
