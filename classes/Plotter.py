@@ -18,6 +18,11 @@ class Plotter(object):
         self.plot_cum_profit()
 
     def plot_profit(self):
+        """
+        It plot daily profit for each model
+        window used.
+        :return: None
+        """
         plt.plot(self.df.index,
                  self.df["daily_profit"],
                  label=self.df_name)
@@ -29,6 +34,11 @@ class Plotter(object):
         plt.close()
 
     def plot_cum_profit(self):
+        """
+        It plot daily profit for each model
+        window used.
+        :return: None
+        """
         plt.plot(self.df.index,
                  self.df["long_short_profit"],
                  label=self.df_name)
