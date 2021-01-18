@@ -253,8 +253,8 @@ def disparity(df):
     temp_df = df.copy()
     sma5 = temp_df["Close"].rolling(window=5).mean()
     sma10 = temp_df["Close"].rolling(window=10).mean()
-    temp_df["sma_5"] = (temp_df["Close"]/sma5)*100
-    temp_df["sma_10"] = (temp_df["Close"]/sma10)*100
+    temp_df["disp_5"] = (temp_df["Close"]/sma5)*100
+    temp_df["disp_10"] = (temp_df["Close"]/sma10)*100
     return temp_df
 
 

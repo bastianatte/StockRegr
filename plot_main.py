@@ -48,17 +48,17 @@ def plot_exe(inpt, output):
             df_temp = setting_date_as_index(df_temp)
 
             # plot profit for each stock
-            single_model_profit(df_temp, csv_string, profit_output)
+            # single_model_profit(df_temp, csv_string, profit_output)
             dfs_list.append((df_temp, csv_string))
             prefit_list.append((df_prefit, csv_string))
     logger.info("Singular plots done!!")
 
     # plot prefit variables
-    # plot_prefit_variables(dfs_list, prefit_output)
+    plot_prefit_variables(dfs_list, prefit_output)
 
     # plot profit for the whole set of stochs
-    multiple_profit_plot(dfs_list, profit_output)
-    logger.info("Multiple profit done plots done!!")
+    # multiple_profit_plot(dfs_list, profit_output)
+    # logger.info("Multiple profit done plots done!!")
     return dfs_list
 
 
@@ -169,7 +169,7 @@ def plot_prefit_variables(prefit_list, output):
         df = item[0]
         df_name = item[1]
         if pc["general_csv"] in item[1]:
-            print("temp df: ", df_name, df.shape)
+            print("temp df: ", df_name, df.shape, result.shape)
             result = pd.concat([result, df])
     i = 0
     for stock in set(result[mc["ticker"]].values):
