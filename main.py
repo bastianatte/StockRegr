@@ -34,10 +34,12 @@ def create_df(ipt):
     dfs = []
     for csv_file in os.listdir(ipt):
         if fnmatch.fnmatch(csv_file, '*.csv'):
-            if csv_cnt == -1:
+            if csv_cnt == 2:
                 break
             else:
                 csv_cnt += 1
+                if csv_cnt % 50 == 0:
+                    logger.info("Reading csv... {} stocks done!".format(csv_cnt))
                 csv, csv_string = csv_maker(str(ipt), csv_file)
                 df_temp = pd.read_csv(csv, parse_dates=[mc["date_clm"]])
                 df_temp = preprocess_df(df_temp, csv_string)
@@ -107,6 +109,8 @@ if __name__ == '__main__':
     df_pred_list = []
     wnd_cnt = 1
     dataframe = create_df(args.input)
+    dataframe = dataframe.dropna()
+    print(dataframe.columns)
     start = time.time()
     logger.info("{} train windows.".format(len(mc["train_window"])))
 
@@ -119,9 +123,11 @@ if __name__ == '__main__':
         test_start, test_end = create_test_df(window[1])
         test_window = test_end.year - test_start.year
         thresh_raw = make_threshold_lenght(year_from, year_to, test_window)
-        logger.info("#### Time windows #{}: Train from {} to {}"
-                    "#### Test from : {} to {}".format(wnd_cnt, year_from, year_to, test_start, test_end))
+        logger.info("#### Time windows #{} ####".format(wnd_cnt))
+        logger.info("Train from {} to {} #### Test from {} to {}".format(year_from, year_to,
+                                                                         test_start.year, test_end.year))
         wnd_cnt += 1
+        # dataset handling
         for stock in set(dataframe[mc["ticker"]].values):
             df_stock_train, x_train, y_train = split_df(
                 dataframe,
@@ -144,13 +150,12 @@ if __name__ == '__main__':
             df_pred = df_stock_test.copy()
             df_pred[mc["lr_clm_name"]] = pred_lr
             df_pred[mc["rf_clm_name"]] = pred_rf
-
             df_pred_list.append(df_pred)
         stop = time.time()
         logger.info("{} bad stocks over {}".format(
             len(bad_df_list),
             len(set(dataframe[mc["ticker"]].values))))
-        logger.info("Total run time: {}, model run time: {}".format(
+        logger.info("Total run time: {} min, model run time: {} min".format(
             (stop-start)/60,
             (stop-window_start)/60))
         # concatenation to a single pred df
