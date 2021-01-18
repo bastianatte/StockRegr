@@ -8,6 +8,7 @@ from classes.ProfitPlotter import ProfitPlotter
 from config import main_conf as mc
 from config import plot_conf as pc
 from classes.Plotter import Plotter
+from classes.prefit_plotter import prefit_plotter
 
 from utils.misc import get_logger, csv_maker
 
@@ -33,17 +34,31 @@ def plot_exe(inpt, output):
     :return: pandas dataframe
     """
     dfs_list = []
-    out_path = create_folder(output, pc["plot_dir"])
-    print(output, out_path)
+    prefit_list = []
+    profit_output = create_folder(output, pc["profit_plot_dir"])
+    prefit_output = create_folder(output, pc["prefit_plot_dir"])
+    print(output, profit_output)
     for csv_file in os.listdir(inpt):
         if fnmatch.fnmatch(csv_file, '*.csv'):
+
+            # create list of dfs
             csv, csv_string = csv_maker(str(inpt), csv_file)
             df_temp = pd.read_csv(csv, parse_dates=[mc["date_clm"]], index_col=0)
+            df_prefit = df_temp.copy()
             df_temp = setting_date_as_index(df_temp)
-            # single_model_profit(df_temp, csv_string, out_path)
+
+            # plot profit for each stock
+            single_model_profit(df_temp, csv_string, profit_output)
             dfs_list.append((df_temp, csv_string))
+            prefit_list.append((df_prefit, csv_string))
     logger.info("Singular plots done!!")
-    multiple_profit_plot(dfs_list, out_path)
+
+    # plot prefit variables
+    # plot_prefit_variables(dfs_list, prefit_output)
+
+    # plot profit for the whole set of stochs
+    multiple_profit_plot(dfs_list, profit_output)
+    logger.info("Multiple profit done plots done!!")
     return dfs_list
 
 
@@ -148,7 +163,29 @@ def create_list_of_same_models(df_list):
     return rf, lr
 
 
+def plot_prefit_variables(prefit_list, output):
+    result = pd.DataFrame()
+    for item in prefit_list:
+        df = item[0]
+        df_name = item[1]
+        if pc["general_csv"] in item[1]:
+            print("temp df: ", df_name, df.shape)
+            result = pd.concat([result, df])
+    i = 0
+    for stock in set(result[mc["ticker"]].values):
+        i += 1
+        if i == 10:
+            break
+        df_to_plot = result[(result[mc["ticker"]] == stock)]
+        df_to_plot.sort_index()
+        stock_output = create_folder(output, stock)
+        prefplot = prefit_plotter(df_to_plot, stock_output)
+        prefplot.prefit_plotter_exe()
+
+
 if __name__ == '__main__':
     logger.info("~~~### WELL DONE, plot section is now ACTIVE ###~~~")
     logger.info("in plot main")
     dfs = plot_exe(args.input, args.output)
+
+
