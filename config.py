@@ -18,10 +18,19 @@ main_conf = {
     "rf_clm_name": "rf_pred_next_day_rt",
     "lr_clm_name": "lr_pred_next_day_rt",
     "actual_day_rt_clm": "actual_day_rt",
-    "features": ["Close", "Open", "Volume", "High", "Low"],
+    "features": ["Close", "Open", "Volume", "High", "Low", "ta_ema", "stoch", "ta_proc",
+                 "ta_rsi", "macd", "will_r_ind", "sma_5", "sma_10"],
     "label": "actual_next_day_rt",
     "daily_profit_clm": "daily_profit",
     "ls_profit_clm": "long_short_profit",
+    "ema_period": 10,
+    "proc_period": 14,
+    "stochastic_high": 14,
+    "stochastic_low": 3,
+    "macd_slow": 26,
+    "macd_fast": 12,
+    "macd_sign": 9,
+    "rsi_wind": 14,
 }
 
 ranking_conf = {
@@ -40,5 +49,6 @@ plot_conf = {
     "long_csv": "long",
     "short_csv": "short",
     "daily_profit": "daily_profit",
-    "plot_dir": "plot",
+    "profit_plot_dir": "profit_plot",
+    "prefit_plot_dir": "prefit_plot",
 }
