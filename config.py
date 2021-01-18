@@ -19,7 +19,7 @@ main_conf = {
     "lr_clm_name": "lr_pred_next_day_rt",
     "actual_day_rt_clm": "actual_day_rt",
     "features": ["Close", "Open", "Volume", "High", "Low", "ta_ema", "stoch", "ta_proc",
-                 "ta_rsi", "macd", "will_r_ind", "sma_5", "sma_10"],
+                 "ta_rsi", "macd", "will_r_ind", "disp_5", "disp_10", "adi"],
     "label": "actual_next_day_rt",
     "daily_profit_clm": "daily_profit",
     "ls_profit_clm": "long_short_profit",

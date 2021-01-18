@@ -10,6 +10,7 @@ from datetime import timedelta
 from utils.misc import get_logger, create_folder, csv_maker, store_csv
 from utils.ranking import rank_exe
 from classes.models import Models
+from classes.prefit_plotter import prefit_plotter
 
 parser = argparse.ArgumentParser(description="Load flag to run StockRegression")
 parser.add_argument('-i', '--input', type=str, metavar='', required=True,
@@ -23,18 +24,21 @@ logger = get_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def create_df(ipt):
+def create_df(ipt, opt):
     """
     Create a general full_df by looping over
     csv files located by input flag.
     :param ipt: args.input
+    :param opt: args.output
     :return: pandas dataframe
     """
     csv_cnt = 0
     dfs = []
+    folder = create_folder(opt, "prefit_plot")
+    print("folder: ", folder)
     for csv_file in os.listdir(ipt):
         if fnmatch.fnmatch(csv_file, '*.csv'):
-            if csv_cnt == 2:
+            if csv_cnt == -1:
                 break
             else:
                 csv_cnt += 1
@@ -43,6 +47,11 @@ def create_df(ipt):
                 csv, csv_string = csv_maker(str(ipt), csv_file)
                 df_temp = pd.read_csv(csv, parse_dates=[mc["date_clm"]])
                 df_temp = preprocess_df(df_temp, csv_string)
+                if csv_cnt <= 1:
+                    stock_output = create_folder(folder, csv_string)
+                    print("csv folder: ", stock_output)
+                    prefplot = prefit_plotter(df_temp, stock_output)
+                    prefplot.prefit_plotter_exe()
                 dfs.append(df_temp)
     df = pd.concat(dfs)
     return df
@@ -108,9 +117,10 @@ if __name__ == '__main__':
     logger.info("in main")
     df_pred_list = []
     wnd_cnt = 1
-    dataframe = create_df(args.input)
+    dataframe = create_df(args.input, args.output)
     dataframe = dataframe.dropna()
-    print(dataframe.columns)
+    logger.info("dataframe columns: {}".format(dataframe.columns))
+    logger.info("features columns: {}".format(mc["features"]))
     start = time.time()
     logger.info("{} train windows.".format(len(mc["train_window"])))
 
@@ -174,5 +184,5 @@ if __name__ == '__main__':
         store_csv(dataframe_pred, path_csv, f"pred-{year_from}-{year_to}")
         store_csv(profit_rf_df, path_csv, f"profit_rf-{year_from}-{year_to}")
         store_csv(profit_lr_df, path_csv, f"profit_lr-{year_from}-{year_to}")
-        del dataframe_pred
         del profit_rf_df
+        del dataframe_pred

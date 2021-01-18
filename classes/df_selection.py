@@ -24,26 +24,25 @@ def preprocess_df(df, csv_string):
     df = create_next_day_return(df)
     df = create_ticker(df, csv_string)
 
-    # df = ema(df)
+    df = ema(df)
     df = ta_ema(df)
 
-    # df = stochastics(df, mc["stochastic_high"], mc["stochastic_low"])
+    df = stochastics(df, mc["stochastic_high"], mc["stochastic_low"])
     df = ta_stochastic(df)
 
-    # df = price_rate_of_change(df)
+    df = price_rate_of_change(df)
     df = ta_price_rate_of_change(df)
 
-    # df = relative_strenght_index(df)
+    df = relative_strenght_index(df)
     df = ta_rsi(df)
 
-    # df = ta_acc_distr_index(df)
-    # df = acc_distr_index(df)
+    df = ta_acc_distr_index(df)
+    df = acc_distr_index(df)
     df = acc_distr_index_test(df, mc["stochastic_high"])
 
     df = disparity(df)
     df = ta_macd(df)
     df = ta_williams_r_indicator(df)
-    # print(df.head(60))
     return df
 
 
@@ -90,7 +89,7 @@ def ema(df):
     mod_price = df['Close'].copy()
     ema10alt = mod_price.ewm(span=mc["ema_period"], adjust=False).mean()
     mod_price.iloc[0:9] = np.nan
-    df['ema_10'] = np.round(ema10alt, decimals=6)
+    df['ema'] = np.round(ema10alt, decimals=6)
     return df
 
 
@@ -282,6 +281,7 @@ def acc_distr_index_test(df, k):
     """
     Accumulation Distribution Index
     :param df: pandas dataframe
+    :param k: window parameter
     :return: pandas dataframe
     """
     temp_df = df.copy()
@@ -290,4 +290,3 @@ def acc_distr_index_test(df, k):
     # Fast Stochastic
     temp_df["adi_2"] = (((temp_df["Close"]-low_min)-(high_max-temp_df["Close"]))/(high_max-low_min))*temp_df["Volume"]
     return temp_df
-
