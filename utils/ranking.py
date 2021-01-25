@@ -17,7 +17,6 @@ def rank_exe(df, clm):
     df_rank = df.sort_values([mc["date_clm"], clm], ascending=[True, False])
     date_list = list(df_rank.Date.unique())
     date_list.sort()
-    tag = clm[0] + clm[1]
     for date in date_list[:-1]:
         i += 1
         data_date = df_rank[df_rank.Date == date]
