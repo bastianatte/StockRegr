@@ -22,7 +22,11 @@ def preprocess_df(df, csv_string):
     df = df[mc["columns"]]
     df = create_actual_day_rt(df)
     df = create_next_day_return(df)
+    df = lagged_daily_price_2(df)
     df = create_ticker(df, csv_string)
+    # df - lagged_daily_price_calculator(df, 2)
+    # df - lagged_daily_price_calculator(df, 4)
+    # df - lagged_daily_price_calculator(df, 5)
 
     df = ema(df)
     df = ta_ema(df)
@@ -43,6 +47,9 @@ def preprocess_df(df, csv_string):
     df = disparity(df)
     df = ta_macd(df)
     df = ta_williams_r_indicator(df)
+    # print(df.shape, df)
+    # print("temp df =", df.head(3))
+    # print(df.head(3), df.tail(3))
     return df
 
 
@@ -77,6 +84,20 @@ def create_next_day_return(df):
     """
     df[mc["label"]] = df[mc["actual_day_rt_clm"]].shift(periods=-1, fill_value=0)
     return df
+
+
+def lagged_daily_price_2(df):
+    """
+    It maked the lagged daily return for a given trading
+    day d, in the lag [d−10, d−1].
+    :param df:
+    :return: pandas dataframe
+    """
+    temp_df = df.copy()
+    for i in range(1, 11):
+        string = "label_" + str(i)
+        temp_df[mc[string]] = temp_df[mc["actual_day_rt_clm"]].shift(periods=-i, fill_value=0)
+    return temp_df
 
 
 def ema(df):
@@ -290,3 +311,11 @@ def acc_distr_index_test(df, k):
     # Fast Stochastic
     temp_df["adi_2"] = (((temp_df["Close"]-low_min)-(high_max-temp_df["Close"]))/(high_max-low_min))*temp_df["Volume"]
     return temp_df
+
+
+def volatility(df):
+    temp_df = df.copy()
+    log_ret = np.log(temp_df["Close"] / temp_df["Close"].shift(1))
+    temp_df["vol"] = log_ret.rolling(window=250).std() * np.sqrt(250)
+    return temp_df
+
