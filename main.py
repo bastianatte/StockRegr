@@ -5,12 +5,12 @@ import os
 import pandas as pd
 from config import main_conf as mc
 import time
-from classes.df_selection import preprocess_df
+from classes.DFSelection import preprocess_df
 from datetime import timedelta
 from utils.misc import get_logger, create_folder, csv_maker, store_csv
 from utils.ranking import rank_exe
-from classes.models import Models
-from classes.prefit_plotter import prefit_plotter
+from classes.RegressorModels import RegressorModels
+from classes.PrefitPlotter import prefit_plotter
 
 parser = argparse.ArgumentParser(description="Load flag to run StockRegression")
 parser.add_argument('-i', '--input', type=str, metavar='', required=True,
@@ -50,8 +50,9 @@ def create_df(ipt, opt):
                 if csv_cnt <= 1:
                     stock_output = create_folder(folder, csv_string)
                     print("csv folder: ", stock_output)
-                    prefplot = prefit_plotter(df_temp, stock_output)
-                    prefplot.prefit_plotter_exe()
+                    if mc["prefit_plot_flag"] is True:
+                        prefplot = prefit_plotter(df_temp, stock_output)
+                        prefplot.prefit_plotter_exe()
                 dfs.append(df_temp)
     df = pd.concat(dfs)
     return df
@@ -101,6 +102,34 @@ def make_threshold_lenght(year_start, year_end, test_wind):
     return ((year_end - year_start) * 250) + (test_wind * days_in_year)
 
 
+def create_prediction(df_test, xtrain, ytrain, xtest):
+    """
+    create prediction for each regression model
+    :param df_test: test dataframe
+    :param xtrain: X train
+    :param ytrain: Y train
+    :param xtest: X test
+    :return: pred df
+    """
+    model = RegressorModels(xtrain, ytrain, xtest)
+    pred_rf = model.random_forest_regr()
+    pred_lr = model.linear_regr()
+    pred_gbr = model.gradient_boost_regr()
+    pred_knr = model.kneighbors_regr()
+    pred_lasso = model.lasso_regr()
+    pred_enr = model.elastic_net_regr()
+    pred_dtr = model.decis_tree_regr()
+    pred = df_test.copy()
+    pred[mc["lr_clm_name"]] = pred_lr
+    pred[mc["rf_clm_name"]] = pred_rf
+    pred[mc["gbr_clm_name"]] = pred_gbr
+    pred[mc["knr_clm_name"]] = pred_knr
+    pred[mc["lasso_clm_name"]] = pred_lasso
+    pred[mc["enr_clm_name"]] = pred_enr
+    pred[mc["dtr_clm_name"]] = pred_dtr
+    return pred
+
+
 def create_test_df(train_end):
     """
     Calcuate test windows for the walkforward
@@ -113,6 +142,13 @@ def create_test_df(train_end):
     return test_start_date, test_end_date
 
 
+def create_rank(df, clm_name, out_path, y_start, y_end, string):
+    df_long, df_short, df_profit = rank_exe(df, clm_name)
+    store_csv(df_long, out_path, f"{string}_long-{y_start}-{y_end}")
+    store_csv(df_short, out_path, f"{string}_short-{y_start}-{y_end}")
+    store_csv(df_profit, out_path, f"profit_{string}-{y_start}-{y_end}")
+
+
 if __name__ == '__main__':
     logger.info("in main")
     df_pred_list = []
@@ -121,45 +157,28 @@ if __name__ == '__main__':
     dataframe = dataframe.dropna()
     logger.info("dataframe columns: {}".format(dataframe.columns))
     logger.info("features columns: {}".format(mc["features"]))
-    start = time.time()
     logger.info("{} train windows.".format(len(mc["train_window"])))
-
+    start = time.time()
     for window in mc["train_window"]:
         df_pred_list.clear()
         window_start = time.time()
         bad_df_list = []
-        year_from = window[0].year
-        year_to = window[1].year
+        y_from = window[0].year
+        y_to = window[1].year
         test_start, test_end = create_test_df(window[1])
         test_window = test_end.year - test_start.year
-        thresh_raw = make_threshold_lenght(year_from, year_to, test_window)
+        thresh_raw = make_threshold_lenght(y_from, y_to, test_window)
         logger.info("#### Time windows #{} ####".format(wnd_cnt))
-        logger.info("Train from {} to {} #### Test from {} to {}".format(year_from, year_to,
+        logger.info("Train from {} to {} #### Test from {} to {}".format(y_from, y_to,
                                                                          test_start.year, test_end.year))
         wnd_cnt += 1
-        # dataset handling
         for stock in set(dataframe[mc["ticker"]].values):
-            df_stock_train, x_train, y_train = split_df(
-                dataframe,
-                stock,
-                date_start=window[0],
-                date_end=window[1])
-            df_stock_test, x_test, y_test = split_df(
-                dataframe,
-                stock,
-                test_start,
-                test_end)
+            df_stock_train, x_train, y_train = split_df(dataframe, stock, date_start=window[0], date_end=window[1])
+            df_stock_test, x_test, y_test = split_df(dataframe, stock, test_start, test_end)
             if len(df_stock_train) + len(df_stock_test) < thresh_raw:
                 bad_df_list.append(stock)
                 continue
-            # Apply models
-            # print("train ", stock,  df_stock_test.iloc[0, 0], df_stock_test.iloc[0, 0], df_stock_train.shape)
-            mod = Models(x_train, y_train, x_test)
-            pred_rf = mod.random_forest()
-            pred_lr = mod.linear_model()
-            df_pred = df_stock_test.copy()
-            df_pred[mc["lr_clm_name"]] = pred_lr
-            df_pred[mc["rf_clm_name"]] = pred_rf
+            df_pred = create_prediction(df_stock_test, x_train, y_train, x_test)
             df_pred_list.append(df_pred)
         stop = time.time()
         logger.info("{} bad stocks over {}".format(
@@ -170,19 +189,13 @@ if __name__ == '__main__':
             (stop-window_start)/60))
         # concatenation to a single pred df
         dataframe_pred = pd.concat(df_pred_list)
-        # a ranking for a model
-        df_pred_rf_long, df_pred_rf_short, profit_rf_df = rank_exe(dataframe_pred, mc["rf_clm_name"])
-        df_pred_lr_long, df_pred_lr_short, profit_lr_df = rank_exe(dataframe_pred, mc["lr_clm_name"])
-
-        # # storing csv
         path_csv = create_folder(args.output, "csv")
-        store_csv(dataframe, path_csv, f"general-{year_from}-{year_to}")
-        store_csv(df_pred_rf_long, path_csv, f"rf_long-{year_from}-{year_to}")
-        store_csv(df_pred_rf_short, path_csv, f"rf_short-{year_from}-{year_to}")
-        store_csv(df_pred_lr_long, path_csv, f"lr_long-{year_from}-{year_to}")
-        store_csv(df_pred_lr_short, path_csv, f"lr_short-{year_from}-{year_to}")
-        store_csv(dataframe_pred, path_csv, f"pred-{year_from}-{year_to}")
-        store_csv(profit_rf_df, path_csv, f"profit_rf-{year_from}-{year_to}")
-        store_csv(profit_lr_df, path_csv, f"profit_lr-{year_from}-{year_to}")
-        del profit_rf_df
-        del dataframe_pred
+        store_csv(dataframe, path_csv, f"general-{y_from}-{y_to}")
+        store_csv(dataframe_pred, path_csv, f"pred-{y_from}-{y_to}")
+        create_rank(dataframe_pred, mc["rf_clm_name"], path_csv, y_from, y_to, "rf")
+        create_rank(dataframe_pred, mc["lr_clm_name"], path_csv, y_from, y_to, "lr")
+        create_rank(dataframe_pred, mc["gbr_clm_name"], path_csv, y_from, y_to, "gbr")
+        create_rank(dataframe_pred, mc["knr_clm_name"], path_csv, y_from, y_to, "knr")
+        create_rank(dataframe_pred, mc["lasso_clm_name"], path_csv, y_from, y_to, "lasso")
+        create_rank(dataframe_pred, mc["enr_clm_name"], path_csv, y_from, y_to, "enr")
+        create_rank(dataframe_pred, mc["dtr_clm_name"], path_csv, y_from, y_to, "dtr")
