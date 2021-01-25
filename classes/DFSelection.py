@@ -20,13 +20,12 @@ def preprocess_df(df, csv_string):
     :param csv_string: stock name string
     """
     df = df[mc["columns"]]
-    df = create_actual_day_rt(df)
+    df = lagged_daily_price_return(df)
     df = create_next_day_return(df)
+    df = daily_return(df)
+    df = pct_daily_return(df)
     df = lagged_daily_price_2(df)
     df = create_ticker(df, csv_string)
-    # df - lagged_daily_price_calculator(df, 2)
-    # df - lagged_daily_price_calculator(df, 4)
-    # df - lagged_daily_price_calculator(df, 5)
 
     df = ema(df)
     df = ta_ema(df)
@@ -47,19 +46,8 @@ def preprocess_df(df, csv_string):
     df = disparity(df)
     df = ta_macd(df)
     df = ta_williams_r_indicator(df)
-    # print(df.shape, df)
-    # print("temp df =", df.head(3))
-    # print(df.head(3), df.tail(3))
-    return df
 
-
-def create_actual_day_rt(df):
-    """
-    Create actual day return variable.
-    :param df: Unmodified pandas dataframe
-    :return: modified pandas dataframe
-    """
-    df[mc["actual_day_rt_clm"]] = (df['Close'].subtract(df['Open'])).div(df['Open'])
+    # print(df.head(5))
     return df
 
 
@@ -71,6 +59,16 @@ def create_ticker(df, stock_ticker):
     :return: modified dataframe
     """
     df[mc["ticker"]] = stock_ticker
+    return df
+
+
+def lagged_daily_price_return(df):
+    """
+    Create actual day return variable.
+    :param df: Unmodified pandas dataframe
+    :return: modified pandas dataframe
+    """
+    df[mc["actual_day_rt_clm"]] = (df['Close'].subtract(df['Open'])).div(df['Open'])
     return df
 
 
@@ -97,6 +95,25 @@ def lagged_daily_price_2(df):
     for i in range(1, 11):
         string = "label_" + str(i)
         temp_df[mc[string]] = temp_df[mc["actual_day_rt_clm"]].shift(periods=-i, fill_value=0)
+    return temp_df
+
+
+def daily_return(df):
+    """
+    Calculate daily return
+    :param df: pandas dataframe
+    :return: pandas dataframe
+    """
+    temp_df = df.copy()
+    temp_df[mc["daily_return"]] = temp_df["Close"]/temp_df["Close"].shift(1)-1
+    return temp_df
+
+
+def pct_daily_return(df):
+    temp_df = df.copy()
+    temp_df["pct_return"] = temp_df["Close"].pct_change()
+    temp_df["pct_return_mean"] = temp_df["pct_return"].mean()
+    temp_df["port_return"] = np.sum(temp_df["pct_return_mean"])
     return temp_df
 
 
