@@ -31,6 +31,7 @@ class prefit_plotter(object):
         self.plot_williams()
         self.plot_hist_williams()
         self.plot_disp()
+        self.plot_corr_matrix()
 
     def plot_close_vs_open(self):
         self.df.set_index('Date', inplace=True)
@@ -220,3 +221,20 @@ class prefit_plotter(object):
         plt.savefig(figname, dpi=200)
         plt.close()
         prefit_plotter_log.info("plot adi2 done!")
+
+    def plot_corr_matrix(self):
+        f = plt.figure(figsize=(19, 15))
+        plt.matshow(self.df.corr(), fignum=f.number)
+        plt.xticks(range(self.df.select_dtypes(['number']).shape[1]),
+                   self.df.select_dtypes(['number']).columns,
+                   fontsize=14, rotation=90)
+        plt.yticks(range(self.df.select_dtypes(['number']).shape[1]),
+                   self.df.select_dtypes(['number']).columns, fontsize=14)
+        cb = plt.colorbar()
+        cb.ax.tick_params(labelsize=14)
+        plt.title('Correlation Matrix', fontsize=16)
+
+        figname = os.path.join(self.output, self.df['ticker'].iloc[-1] + "_corr_matrix" + ".png")
+        plt.savefig(figname, dpi=200)
+        plt.close()
+        prefit_plotter_log.info("plot corr_matr done!")
