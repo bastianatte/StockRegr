@@ -120,13 +120,13 @@ def create_prediction(df_test, xtrain, ytrain, xtest):
     pred_enr = model.elastic_net_regr()
     pred_dtr = model.decis_tree_regr()
     pred = df_test.copy()
-    pred[mc["lr_clm_name"]] = pred_lr
-    pred[mc["rf_clm_name"]] = pred_rf
-    pred[mc["gbr_clm_name"]] = pred_gbr
-    pred[mc["knr_clm_name"]] = pred_knr
-    pred[mc["lasso_clm_name"]] = pred_lasso
-    pred[mc["enr_clm_name"]] = pred_enr
-    pred[mc["dtr_clm_name"]] = pred_dtr
+    pred[mc["lr"]] = pred_lr
+    pred[mc["rf"]] = pred_rf
+    pred[mc["gbr"]] = pred_gbr
+    pred[mc["knr"]] = pred_knr
+    pred[mc["lasso"]] = pred_lasso
+    pred[mc["enr"]] = pred_enr
+    pred[mc["dtr"]] = pred_dtr
     return pred
 
 
@@ -142,11 +142,21 @@ def create_test_df(train_end):
     return test_start_date, test_end_date
 
 
-def create_rank(df, clm_name, out_path, y_start, y_end, string):
-    df_long, df_short, df_profit = rank_exe(df, clm_name)
-    store_csv(df_long, out_path, f"{string}_long-{y_start}-{y_end}")
-    store_csv(df_short, out_path, f"{string}_short-{y_start}-{y_end}")
-    store_csv(df_profit, out_path, f"profit_{string}-{y_start}-{y_end}")
+def create_rank_and_store(df, model_clm, out_path, y_start, y_end, model_name):
+    """
+    It perform the rank and store csvs for long part, short part and profit.
+    :param df: pandas dataframe
+    :param model_clm: model
+    :param out_path: output path
+    :param y_start: begin year
+    :param y_end: end year
+    :param model_name: model name
+    :return: None
+    """
+    df_long, df_short, df_profit = rank_exe(df, model_clm)
+    store_csv(df_long, out_path, f"{model_name}_long-{y_start}-{y_end}")
+    store_csv(df_short, out_path, f"{model_name}_short-{y_start}-{y_end}")
+    store_csv(df_profit, out_path, f"profit_{model_name}-{y_start}-{y_end}")
 
 
 if __name__ == '__main__':
@@ -190,12 +200,14 @@ if __name__ == '__main__':
         # concatenation to a single pred df
         dataframe_pred = pd.concat(df_pred_list)
         path_csv = create_folder(args.output, "csv")
+        # store main csv
         store_csv(dataframe, path_csv, f"general-{y_from}-{y_to}")
         store_csv(dataframe_pred, path_csv, f"pred-{y_from}-{y_to}")
-        create_rank(dataframe_pred, mc["rf_clm_name"], path_csv, y_from, y_to, "rf")
-        create_rank(dataframe_pred, mc["lr_clm_name"], path_csv, y_from, y_to, "lr")
-        create_rank(dataframe_pred, mc["gbr_clm_name"], path_csv, y_from, y_to, "gbr")
-        create_rank(dataframe_pred, mc["knr_clm_name"], path_csv, y_from, y_to, "knr")
-        create_rank(dataframe_pred, mc["lasso_clm_name"], path_csv, y_from, y_to, "lasso")
-        create_rank(dataframe_pred, mc["enr_clm_name"], path_csv, y_from, y_to, "enr")
-        create_rank(dataframe_pred, mc["dtr_clm_name"], path_csv, y_from, y_to, "dtr")
+        # create rank for each model and store relevant quantities
+        create_rank_and_store(dataframe_pred, mc["rf"], path_csv, y_from, y_to, "rf")
+        create_rank_and_store(dataframe_pred, mc["lr"], path_csv, y_from, y_to, "lr")
+        create_rank_and_store(dataframe_pred, mc["gbr"], path_csv, y_from, y_to, "gbr")
+        create_rank_and_store(dataframe_pred, mc["knr"], path_csv, y_from, y_to, "knr")
+        create_rank_and_store(dataframe_pred, mc["lasso"], path_csv, y_from, y_to, "lasso")
+        create_rank_and_store(dataframe_pred, mc["enr"], path_csv, y_from, y_to, "enr")
+        create_rank_and_store(dataframe_pred, mc["dtr"], path_csv, y_from, y_to, "dtr")
