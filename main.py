@@ -211,3 +211,4 @@ if __name__ == '__main__':
         create_rank_and_store(dataframe_pred, mc["lasso"], path_csv, y_from, y_to, "lasso")
         create_rank_and_store(dataframe_pred, mc["enr"], path_csv, y_from, y_to, "enr")
         create_rank_and_store(dataframe_pred, mc["dtr"], path_csv, y_from, y_to, "dtr")
+        logger.info("Main Analysis Done")
