@@ -1,6 +1,9 @@
 from utils.misc import get_logger, disc_sort_tuple
 import matplotlib.pyplot as plt
+import pandas as pd
+import empyrical as emp
 from config import plot_conf as pc
+import pyfolio as pf
 import os
 import logging
 
@@ -78,3 +81,67 @@ class ProfitPlotter(object):
         figname = os.path.join(self.output, self.plot_name + "_ranking" + ".png")
         plt.savefig(figname, dpi=200)
         plt.close()
+
+    def make_return_tear_sheet_plot(self):
+        for item in self.df_list:
+            df = item[0]
+            daily_profit = df["daily_profit"]
+            tear_sheet_rt = pf.create_returns_tear_sheet(daily_profit, return_fig=True)
+            figname = os.path.join(self.output, self.plot_name + "_tear_sheet_return" + ".png")
+            tear_sheet_rt.savefig(figname, dpi=200)
+            # Drawdown
+            dd_plot = pf.plot_drawdown_periods(daily_profit, top=10)
+            full_tear_sheet_rt_ax = pf.create_full_tear_sheet(daily_profit)
+            print(full_tear_sheet_rt_ax)
+            ddfigname = os.path.join(self.output, self.plot_name + "_drawdown" + ".png")
+            dd_plot.figure.savefig(ddfigname)
+
+    def make_empirical(self):
+        statistics_dict = {}
+        for item in self.df_list:
+            df = item[0]
+            df_name = item[1]
+            daily_profit = df["daily_profit"]
+            statistics_dict['sharpe ratio'] = emp.sharpe_ratio(daily_profit)
+            # sharpe ratio
+            plt.plot(statistics_dict["sharpe ratio"], '-', label=df_name, marker="")
+            plt.title("sharpe ratio")
+            sr_figname = os.path.join(self.output, self.plot_name + "_sharpe_ratio.png")
+            plt.savefig(sr_figname, dpi=200)
+            plt.close()
+            # annual return
+            statistics_dict["annual returns"] = emp.annual_return(daily_profit)
+            plt.plot(statistics_dict["annual returns"], '-', label=df_name, marker="")
+            plt.title("annual return")
+            ar_figname = os.path.join(self.output, self.plot_name + "_annual_ret.png")
+            plt.savefig(ar_figname, dpi=200)
+            plt.close()
+            # mean return
+            statistics_dict['mean returns'] = daily_profit.mean()
+            plt.plot(statistics_dict["mean returns"], '-', label=df_name, marker="")
+            plt.title("mean returns")
+            ar_figname = os.path.join(self.output, self.plot_name + "_mean_ret.png")
+            plt.savefig(ar_figname, dpi=200)
+            plt.close()
+            # standard dev p.a.
+            statistics_dict['Standard dev p.a.'] = emp.annual_volatility(daily_profit)
+            plt.plot(statistics_dict["Standard dev p.a."], '-', label=df_name, marker="")
+            plt.title("Standard dev p.a.")
+            ar_figname = os.path.join(self.output, self.plot_name + "_standard_dev.png")
+            plt.savefig(ar_figname, dpi=200)
+            plt.close()
+            # sortino
+            statistics_dict['Sortino Ratio'] = emp.sortino_ratio(daily_profit)
+            plt.plot(statistics_dict["Sortino Ratio"], '-', label=df_name, marker="")
+            plt.title("Sortino Ratio")
+            ar_figname = os.path.join(self.output, self.plot_name + "_sortino_ratio.png")
+            plt.savefig(ar_figname, dpi=200)
+            plt.close()
+            # max dd
+            statistics_dict['MaxDD'] = emp.max_drawdown(daily_profit)
+            plt.plot(statistics_dict["MaxDD"], '-', label=df_name, marker="")
+            plt.title("MaxDD")
+            ar_figname = os.path.join(self.output, self.plot_name + "_maxdd.png")
+            plt.savefig(ar_figname, dpi=200)
+            plt.close()
+

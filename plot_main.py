@@ -94,22 +94,25 @@ def multiple_profit_plot(df_list, output):
         df_name = item[1]
         if pc["daily_profit"] in df.columns.to_list():
             dfs_profit_list.append((df, df_name))
-    rf, lr, gbr, knr, lasso, enr, drt = create_list_of_same_models(dfs_profit_list)
+    rf, lr, gbr, knr, lasso, enr, dtr = create_list_of_same_models(dfs_profit_list)
+    # multi df per model
     make_profit_plot(rf, output, "rf")
     make_profit_plot(lr, output, "lr")
     make_profit_plot(lr, output, "gbr")
     make_profit_plot(knr, output, "knr")
     make_profit_plot(lasso, output, "lasso")
     make_profit_plot(enr, output, "enr")
-    make_profit_plot(drt, output, "drt")
+    make_profit_plot(dtr, output, "dtr")
+    # unique df per model
     lr_df = create_unique_df(lr, "lr")
     rf_df = create_unique_df(rf, "rf")
     gbr_df = create_unique_df(gbr, "gbr")
     knr_df = create_unique_df(knr, "knr")
     lasso_df = create_unique_df(lasso, "lasso")
     enr_df = create_unique_df(enr, "enr")
-    # drt_df = create_unique_df(drt)
-    df_total_list = lr_df + rf_df + gbr_df + knr_df + lasso_df + enr_df # + drt_df
+    dtr_df = create_unique_df(dtr, "dtr")
+    make_pyfolio_plot(lr_df, output, "pyfolio_lr")
+    df_total_list = lr_df + rf_df + dtr_df + gbr_df + knr_df + lasso_df + enr_df
     make_profit_plot(df_total_list, output, "total")
     logger.info("Multiple profit done plots done!!")
 
@@ -137,7 +140,16 @@ def make_profit_plot(model_list, output, model_name):
     model = ProfitPlotter(model_list, model_name, output)
     model.make_multiple_profit_plot()
     model.make_multiple_profit_plot_ranking()
+    model.make_empirical()
     logger.info("{} profit plot done!".format(model_name))
+
+
+def make_pyfolio_plot(model_list, output, model_name):
+    logger.info("... in make {} pyfolio plot".format(model_name))
+    model = ProfitPlotter(model_list, model_name, output)
+    model.make_return_tear_sheet_plot()
+    model.make_empirical()
+    logger.info("{} pyfolio plot done!".format(model_name))
 
 
 def profit_shift(df_list):
@@ -174,7 +186,7 @@ def create_list_of_same_models(df_list):
     knr = []
     lasso = []
     enr = []
-    drt = []
+    dtr = []
     for item in df_list:
         df = item[0]
         df_name = item[1]
@@ -202,12 +214,12 @@ def create_list_of_same_models(df_list):
             enr.append((df, df_name))
             enr = asc_sort_tuple(enr)
             enr = profit_shift(enr)
-        elif "drt" in df_name:
-            drt.append((df, df_name))
-            drt = asc_sort_tuple(drt)
-            drt = profit_shift(drt)
+        elif "dtr" in df_name:
+            dtr.append((df, df_name))
+            dtr = asc_sort_tuple(dtr)
+            dtr = profit_shift(dtr)
     logger.info("Create list of same models done!")
-    return rf, lr, gbr, knr, lasso, enr, drt
+    return rf, lr, gbr, knr, lasso, enr, dtr
 
 
 if __name__ == '__main__':
