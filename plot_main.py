@@ -21,12 +21,12 @@ parser.add_argument('-o', '--output', type=str, metavar='', required=True,
 args = parser.parse_args()
 
 
-def plot_exe(inpt):
+def plot_exe(inpt, output):
     """
     Create a general full_df by looping over
     csv files located by input flag.
     :param inpt: args.input
-    # :param output: args.output
+    :param output: output path
     :return: pandas dataframe
     """
     logger.info("in plot execute")
@@ -40,7 +40,7 @@ def plot_exe(inpt):
             df_temp = df.copy()
             df_temp = setting_date_as_index(df_temp)
             # plot profit for each stock
-            single_model_profit(df_temp, csv_string, profit_output)
+            single_model_profit(df_temp, csv_string, output)
             dfs_list.append((df_temp, csv_string))
     logger.info("plot execute done!")
     return dfs_list
@@ -229,9 +229,9 @@ def create_list_of_same_models(df_list):
 if __name__ == '__main__':
     logger.info("~~~### plot section is now ACTIVE ###~~~")
     # single profit plot
-    dfs = plot_exe(args.input)
-    # multiple profit plot
     profit_output = create_folder(args.output, pc["profit_plot_dir"])
+    dfs = plot_exe(args.input, profit_output)
+    # multiple profit plot
     multiple_profit_plot(dfs, profit_output)
     logger.info("WELL DONE, plot main done!")
 
