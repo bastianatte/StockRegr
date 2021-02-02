@@ -1,8 +1,8 @@
 from utils.misc import get_logger, disc_sort_tuple
 import matplotlib.pyplot as plt
-import pandas as pd
-import empyrical as emp
+import numpy as np
 from config import plot_conf as pc
+import empyrical as emp
 import pyfolio as pf
 import os
 import logging
@@ -92,7 +92,7 @@ class ProfitPlotter(object):
             # Drawdown
             dd_plot = pf.plot_drawdown_periods(daily_profit, top=10)
             full_tear_sheet_rt_ax = pf.create_full_tear_sheet(daily_profit)
-            print(full_tear_sheet_rt_ax)
+            # print(full_tear_sheet_rt_ax)
             ddfigname = os.path.join(self.output, self.plot_name + "_drawdown" + ".png")
             dd_plot.figure.savefig(ddfigname)
 
@@ -123,25 +123,27 @@ class ProfitPlotter(object):
             ar_figname = os.path.join(self.output, self.plot_name + "_mean_ret.png")
             plt.savefig(ar_figname, dpi=200)
             plt.close()
-            # standard dev p.a.
+            # standard dev p.a. ###### ALERT #######
             statistics_dict['Standard dev p.a.'] = emp.annual_volatility(daily_profit)
-            plt.plot(statistics_dict["Standard dev p.a."], '-', label=df_name, marker="")
-            plt.title("Standard dev p.a.")
-            ar_figname = os.path.join(self.output, self.plot_name + "_standard_dev.png")
-            plt.savefig(ar_figname, dpi=200)
-            plt.close()
-            # sortino
+            # plt.plot(statistics_dict["Standard dev p.a."], '-', label=df_name, marker="")
+            # plt.title("Standard dev p.a.")
+            # ar_figname = os.path.join(self.output, self.plot_name + "_standard_dev.png")
+            # plt.savefig(ar_figname, dpi=200)
+            # plt.close()
+            # sortino ###### ALERT #######
             statistics_dict['Sortino Ratio'] = emp.sortino_ratio(daily_profit)
-            plt.plot(statistics_dict["Sortino Ratio"], '-', label=df_name, marker="")
-            plt.title("Sortino Ratio")
-            ar_figname = os.path.join(self.output, self.plot_name + "_sortino_ratio.png")
-            plt.savefig(ar_figname, dpi=200)
-            plt.close()
-            # max dd
+            # plt.plot(statistics_dict["Sortino Ratio"], '-', label=df_name, marker="")
+            # plt.title("Sortino Ratio")
+            # ar_figname = os.path.join(self.output, self.plot_name + "_sortino_ratio.png")
+            # plt.savefig(ar_figname, dpi=200)
+            # plt.close()
+            # max dd ###### ALERT #######
             statistics_dict['MaxDD'] = emp.max_drawdown(daily_profit)
-            plt.plot(statistics_dict["MaxDD"], '-', label=df_name, marker="")
-            plt.title("MaxDD")
-            ar_figname = os.path.join(self.output, self.plot_name + "_maxdd.png")
-            plt.savefig(ar_figname, dpi=200)
-            plt.close()
+            # plt.plot(statistics_dict["MaxDD"], '-', label=df_name, marker="")
+            # plt.title("MaxDD")
+            # ar_figname = os.path.join(self.output, self.plot_name + "_maxdd.png")
+            # plt.savefig(ar_figname, dpi=200)
+            # plt.close()
+        return statistics_dict
+
 
