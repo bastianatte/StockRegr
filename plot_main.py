@@ -21,28 +21,27 @@ parser.add_argument('-o', '--output', type=str, metavar='', required=True,
 args = parser.parse_args()
 
 
-def plot_exe(inpt, output):
+def plot_exe(inpt):
     """
     Create a general full_df by looping over
     csv files located by input flag.
     :param inpt: args.input
-    :param output: args.output
+    # :param output: args.output
     :return: pandas dataframe
     """
     logger.info("in plot execute")
     dfs_list = []
-    profit_output = create_folder(output, pc["profit_plot_dir"])
     for csv_file in os.listdir(inpt):
         if fnmatch.fnmatch(csv_file, '*.csv'):
             # create list of dfs
             csv, csv_string = csv_maker(str(inpt), csv_file)
+            print(csv_string)
             df = pd.read_csv(csv, parse_dates=[mc["date_clm"]], index_col=0)
             df_temp = df.copy()
             df_temp = setting_date_as_index(df_temp)
             # plot profit for each stock
             single_model_profit(df_temp, csv_string, profit_output)
             dfs_list.append((df_temp, csv_string))
-    multiple_profit_plot(dfs_list, profit_output)
     logger.info("plot execute done!")
     return dfs_list
 
@@ -56,7 +55,6 @@ def single_model_profit(df, csv_str, output):
     :param output: output path
     :return: None
     """
-    # logger.info("In singular plots")
     if pc["profit_csv"] in csv_str:
         if pc["rf_csv"] in csv_str:
             output_loc = create_folder(output, csv_str)
@@ -66,7 +64,6 @@ def single_model_profit(df, csv_str, output):
             output_loc = create_folder(output, csv_str)
             pl = Plotter(df, csv_str, output_loc)
             pl.plot_profit_template()
-    # logger.info("Singular plots done!!")
 
 
 def setting_date_as_index(df):
@@ -95,26 +92,34 @@ def multiple_profit_plot(df_list, output):
         if pc["daily_profit"] in df.columns.to_list():
             dfs_profit_list.append((df, df_name))
     rf, lr, gbr, knr, lasso, enr, dtr = create_list_of_same_models(dfs_profit_list)
-    # multi df per model
-    make_profit_plot(rf, output, "rf")
-    make_profit_plot(lr, output, "lr")
-    make_profit_plot(lr, output, "gbr")
-    make_profit_plot(knr, output, "knr")
-    make_profit_plot(lasso, output, "lasso")
-    make_profit_plot(enr, output, "enr")
-    make_profit_plot(dtr, output, "dtr")
-    # unique df per model
-    lr_df = create_unique_df(lr, "lr")
-    rf_df = create_unique_df(rf, "rf")
-    gbr_df = create_unique_df(gbr, "gbr")
-    knr_df = create_unique_df(knr, "knr")
-    lasso_df = create_unique_df(lasso, "lasso")
-    enr_df = create_unique_df(enr, "enr")
-    dtr_df = create_unique_df(dtr, "dtr")
-    make_pyfolio_plot(lr_df, output, "pyfolio_lr")
+    # make profit plot and create statistical dataframe
+    rf_df, rf_stat_dict, rf_stat_df = make_profit_and_create_stat_dict(rf, output, "rf")
+    lr_df, lr_stat_dict, lr_stat_df = make_profit_and_create_stat_dict(lr, output, "lr")
+    dtr_df, dtr_stat_dict, dtr_stat_df = make_profit_and_create_stat_dict(dtr, output, "dtr")
+    gbr_df, gbr_stat_dict, gbr_stat_df = make_profit_and_create_stat_dict(gbr, output, "gbr")
+    knr_df, knr_stat_dict, knr_stat_df = make_profit_and_create_stat_dict(knr, output, "knr")
+    lasso_df, lasso_stat_dict, lasso_stat_df = make_profit_and_create_stat_dict(lasso, output, "lasso")
+    enr_df, enr_stat_dict, enr_stat_df = make_profit_and_create_stat_dict(enr, output, "enr")
+    rf_stat_df = rf_stat_df.join(lr_stat_df["lr"])
+    rf_stat_df = rf_stat_df.join(dtr_stat_df["dtr"])
+    rf_stat_df = rf_stat_df.join(gbr_stat_df["gbr"])
+    rf_stat_df = rf_stat_df.join(knr_stat_df["knr"])
+    rf_stat_df = rf_stat_df.join(lasso_stat_df["lasso"])
+    rf_stat_df = rf_stat_df.join(enr_stat_df["enr"])
+    print(rf_stat_df)
     df_total_list = lr_df + rf_df + dtr_df + gbr_df + knr_df + lasso_df + enr_df
     make_profit_plot(df_total_list, output, "total")
     logger.info("Multiple profit done plots done!!")
+
+
+def make_profit_and_create_stat_dict(model, output, model_string):
+    make_profit_plot(model, output, model_string)
+    model_df = create_unique_df(model, model_string)
+    stat_dict_string = "pyfolio_" + model_string
+    stat_dict = make_pyfolio_plot(model_df, output, stat_dict_string)
+    make_pyfolio_plot(model_df, output, stat_dict_string)
+    stat_df = pd.DataFrame(stat_dict.items(), columns=["metrics", model_string])
+    return model_df, stat_dict, stat_df
 
 
 def create_unique_df(tup, name):
@@ -140,16 +145,15 @@ def make_profit_plot(model_list, output, model_name):
     model = ProfitPlotter(model_list, model_name, output)
     model.make_multiple_profit_plot()
     model.make_multiple_profit_plot_ranking()
-    model.make_empirical()
     logger.info("{} profit plot done!".format(model_name))
 
 
 def make_pyfolio_plot(model_list, output, model_name):
     logger.info("... in make {} pyfolio plot".format(model_name))
     model = ProfitPlotter(model_list, model_name, output)
-    model.make_return_tear_sheet_plot()
-    model.make_empirical()
+    stat_dict = model.make_empirical()
     logger.info("{} pyfolio plot done!".format(model_name))
+    return stat_dict
 
 
 def profit_shift(df_list):
@@ -224,5 +228,10 @@ def create_list_of_same_models(df_list):
 
 if __name__ == '__main__':
     logger.info("~~~### plot section is now ACTIVE ###~~~")
-    dfs = plot_exe(args.input, args.output)
+    # single profit plot
+    dfs = plot_exe(args.input)
+    # multiple profit plot
+    profit_output = create_folder(args.output, pc["profit_plot_dir"])
+    multiple_profit_plot(dfs, profit_output)
     logger.info("WELL DONE, plot main done!")
+
