@@ -106,10 +106,21 @@ def multiple_profit_plot(df_list, output):
     rf_stat_df = rf_stat_df.join(knr_stat_df["knr"])
     rf_stat_df = rf_stat_df.join(lasso_stat_df["lasso"])
     rf_stat_df = rf_stat_df.join(enr_stat_df["enr"])
-    print(rf_stat_df)
+    make_metrics_plot(rf_stat_df, output)
     df_total_list = lr_df + rf_df + dtr_df + gbr_df + knr_df + lasso_df + enr_df
     make_profit_plot(df_total_list, output, "total")
     logger.info("Multiple profit done plots done!!")
+
+
+def make_metrics_plot(df, output):
+    """
+    Plot metrics table
+    :param df: pandas df
+    :param output: output path
+    :return: None
+    """
+    pl = Plotter(df, "metrics", output)
+    pl.plot_metrics_table()
 
 
 def make_profit_and_create_stat_dict(model, output, model_string):

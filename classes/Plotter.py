@@ -47,3 +47,19 @@ class Plotter(object):
         figname = os.path.join(self.output, "cum_profit" + ".png")
         plt.savefig(figname, dpi=200)
         plt.close()
+
+    def plot_metrics_table(self):
+        """
+        Makes metrics table plot for each regressor model.
+        :return:None
+        """
+        fig, ax = plt.subplots()
+        fig.patch.set_visible(False)
+        ax.axis('off')
+        ax.axis('tight')
+        ax.table(cellText=self.df.values, colLabels=self.df.columns, loc='center')
+        fig.tight_layout()
+        figname = os.path.join(self.output, "metrics_table" + ".png")
+        plt.savefig(figname, dpi=200)
+        plt.close()
+
