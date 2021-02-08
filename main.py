@@ -47,11 +47,11 @@ def create_df(ipt, opt):
                 csv, csv_string = csv_maker(str(ipt), csv_file)
                 df_temp = pd.read_csv(csv, parse_dates=[mc["date_clm"]])
                 df_temp = preprocess_df(df_temp, csv_string)
-                if csv_cnt <= 1:
+                if csv_cnt <= 3:
                     stock_output = create_folder(folder, csv_string)
                     print("csv folder: ", stock_output)
                     if mc["prefit_plot_flag"] is True:
-                        prefplot = prefit_plotter(df_temp, stock_output)
+                        prefplot = prefit_plotter(df_temp, stock_output, csv_string)
                         prefplot.prefit_plotter_exe()
                 dfs.append(df_temp)
     df = pd.concat(dfs)

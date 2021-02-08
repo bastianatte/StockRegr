@@ -334,6 +334,7 @@ def disparity(df):
 #     temp_df = df.copy()
 #     temp_df["proc"] = temp_df["Close"].pct_change(periods=mc["proc_period"])*100
 #     return temp_df
+#     return temp_df
 
 
 
