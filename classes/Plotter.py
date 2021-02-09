@@ -57,7 +57,7 @@ class Plotter(object):
         fig.patch.set_visible(False)
         ax.axis('off')
         ax.axis('tight')
-        ax.table(cellText=self.df.values, colLabels=self.df.columns, loc='center', font_size=13)
+        ax.table(cellText=self.df.values, colLabels=self.df.columns, loc='center', fontsize=13)
         fig.tight_layout()
         figname = os.path.join(self.output, "metrics_table" + ".png")
         plt.savefig(figname, dpi=200)
