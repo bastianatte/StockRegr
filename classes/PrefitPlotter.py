@@ -31,6 +31,7 @@ class prefit_plotter(object):
         self.plot_williams()
         self.plot_hist_williams()
         self.plot_disp()
+        self.plot_hist_disp()
         self.plot_corr_matrix()
 
     def plot_close_vs_open(self):
@@ -144,9 +145,8 @@ class prefit_plotter(object):
         plt.close()
 
     def plot_williams(self):
-        plt.plot(self.df.index, self.df["will_r_ind"], linewidth=0.2, label='williams')
+        plt.plot(self.df.index, self.df["will_r_ind"], linewidth=0.2, label='will %R')
         plt.legend(loc='upper left', frameon=False)
-        plt.xlabel("will_r_index")
         plt.ylabel("will")
         plt.xlabel("year")
         figname = os.path.join(self.output, self.df['ticker'].iloc[-1] + "_williams" + ".png")
@@ -154,9 +154,9 @@ class prefit_plotter(object):
         plt.close()
 
     def plot_hist_williams(self):
-        plt.hist(self.df["will_r_ind"], bins=200)
+        plt.hist(self.df["will_r_ind"], bins=400, label='will %R')
         plt.legend(loc='upper left', frameon=False)
-        plt.xlabel("will_r_index")
+        plt.xlabel("values")
         plt.ylabel("counts")
         figname = os.path.join(self.output, self.df['ticker'].iloc[-1] + "_hist_williams" + ".png")
         plt.savefig(figname, dpi=200)
@@ -168,6 +168,16 @@ class prefit_plotter(object):
         plt.legend(loc='upper left', frameon=False)
         plt.xlabel("year")
         figname = os.path.join(self.output, self.df['ticker'].iloc[-1] + "_disparity" + ".png")
+        plt.savefig(figname, dpi=200)
+        plt.close()
+
+    def plot_hist_disp(self):
+        plt.hist(self.df["disp_5"], bins=400, alpha=0.6, label='disp_5')
+        plt.hist(self.df["disp_10"], bins=400, alpha=0.6, label='disp_10')
+        plt.legend(loc='upper left', frameon=False)
+        plt.xlabel("values")
+        plt.ylabel("counts")
+        figname = os.path.join(self.output, self.df['ticker'].iloc[-1] + "_hist_disparity" + ".png")
         plt.savefig(figname, dpi=200)
         plt.close()
 

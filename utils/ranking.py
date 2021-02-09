@@ -23,7 +23,6 @@ def rank_exe(df, clm):
         data_date = data_date.drop_duplicates(subset=[mc["ticker"]])  # is that useful?
         long_part = data_date.iloc[:rc["stocks_number"]]
         short_part = data_date.iloc[-rc["stocks_number"]:]
-        # rank_log.info("LONG: \n {}".format(long_part[["Date", "rf_pred_next_day_rt"]]))
         dp, lsp = long_short_profit(long_part, short_part, lsp)
         df_daily_profit.loc[i] = [date, lsp, dp]
         dfs_long.append(long_part)
