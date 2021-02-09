@@ -66,7 +66,7 @@ main_conf = {
 }
 
 ranking_conf = {
-    "stocks_number": 10,
+    "stocks_number": 5,
     "long_share": 0.5,
     "short_share": 0.5,
     "rank_df": ["Date", "long_short_profit", "daily_profit"],
