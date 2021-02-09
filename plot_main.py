@@ -121,6 +121,8 @@ def make_metrics_plot(df, output):
     """
     pl = Plotter(df, "metrics", output)
     pl.plot_metrics_table()
+    # pl.plot_metrics_table_2()
+    pl.plot_metrics_table_3()
 
 
 def make_profit_and_create_stat_dict(model, output, model_string):

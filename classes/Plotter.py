@@ -2,6 +2,8 @@ import logging
 import os
 from utils.misc import get_logger
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import dataframe_image as dfi
 
 plotter_log = get_logger(__name__)
 plotter_log.setLevel(logging.INFO)
@@ -63,4 +65,17 @@ class Plotter(object):
         figname = os.path.join(self.output, "metrics_table" + ".png")
         plt.savefig(figname, dpi=200)
         plt.close()
+
+    # def plot_metrics_table_2(self):
+    #     print(self.df.head(5))
+    #     print(self.df.columns, self.df.values)
+    #     fig = go.Figure(data=[go.Table(header=dict(values=list(self.df.columns)), cells=dict(values=self.df.values))])
+    #     # fig1 = go.Figure(data=[go.Table(header=dict(values=['A Scores', 'B Scores']),
+    #     # cells=dict(values=[[100, 90, 80, 90], [95, 85, 75, 95]]))])
+    #     figname = os.path.join(self.output, "metrics_table_2" + ".png")
+    #     fig.write_image(figname)
+
+    def plot_metrics_table_3(self):
+        figname = os.path.join(self.output, "metrics_table_3" + ".png")
+        dfi.export(self.df, figname)
 
