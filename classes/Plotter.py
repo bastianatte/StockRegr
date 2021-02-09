@@ -63,7 +63,7 @@ class Plotter(object):
         tabla = ax.table(cellText=self.df.values, colLabels=self.df.columns, loc='center')
         tabla.scale(1, 2)
         tabla.auto_set_font_size(False)
-        tabla.set_fontsize(6)
+        tabla.set_fontsize(4)
         fig.tight_layout()
         figname = os.path.join(self.output, "metrics_table" + ".png")
         plt.savefig(figname, dpi=400)
