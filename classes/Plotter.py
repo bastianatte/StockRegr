@@ -2,7 +2,7 @@ import logging
 import os
 from utils.misc import get_logger
 import matplotlib.pyplot as plt
-import plotly.graph_objects as go
+# import plotly.graph_objects as go
 import dataframe_image as dfi
 
 plotter_log = get_logger(__name__)
