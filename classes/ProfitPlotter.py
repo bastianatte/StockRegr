@@ -102,7 +102,7 @@ class ProfitPlotter(object):
             df = item[0]
             df_name = item[1]
             daily_profit = df["daily_profit"]
-            statistics_dict['sharpe ratio'] = emp.sharpe_ratio(daily_profit)
+            statistics_dict['sharpe ratio'] = round(emp.sharpe_ratio(daily_profit), 4)
             # sharpe ratio
             plt.plot(statistics_dict["sharpe ratio"], '-', label=df_name, marker="")
             plt.title("sharpe ratio")
@@ -110,35 +110,35 @@ class ProfitPlotter(object):
             plt.savefig(sr_figname, dpi=200)
             plt.close()
             # annual return
-            statistics_dict["annual returns"] = emp.annual_return(daily_profit)
+            statistics_dict["annual returns"] = round(emp.annual_return(daily_profit), 4)
             plt.plot(statistics_dict["annual returns"], '-', label=df_name, marker="")
             plt.title("annual return")
             ar_figname = os.path.join(self.output, self.plot_name + "_annual_ret.png")
             plt.savefig(ar_figname, dpi=200)
             plt.close()
             # mean return
-            statistics_dict['mean returns'] = daily_profit.mean()
+            statistics_dict['mean returns'] = round(daily_profit.mean(), 4)
             plt.plot(statistics_dict["mean returns"], '-', label=df_name, marker="")
             plt.title("mean returns")
             ar_figname = os.path.join(self.output, self.plot_name + "_mean_ret.png")
             plt.savefig(ar_figname, dpi=200)
             plt.close()
             # standard dev p.a. ###### ALERT #######
-            statistics_dict['Standard dev p.a.'] = emp.annual_volatility(daily_profit)
+            statistics_dict['Standard dev p.a.'] = round(emp.annual_volatility(daily_profit), 4)
             # plt.plot(statistics_dict["Standard dev p.a."], '-', label=df_name, marker="")
             # plt.title("Standard dev p.a.")
             # ar_figname = os.path.join(self.output, self.plot_name + "_standard_dev.png")
             # plt.savefig(ar_figname, dpi=200)
             # plt.close()
             # sortino ###### ALERT #######
-            statistics_dict['Sortino Ratio'] = emp.sortino_ratio(daily_profit)
+            statistics_dict['Sortino Ratio'] = round(emp.sortino_ratio(daily_profit), 4)
             # plt.plot(statistics_dict["Sortino Ratio"], '-', label=df_name, marker="")
             # plt.title("Sortino Ratio")
             # ar_figname = os.path.join(self.output, self.plot_name + "_sortino_ratio.png")
             # plt.savefig(ar_figname, dpi=200)
             # plt.close()
             # max dd ###### ALERT #######
-            statistics_dict['MaxDD'] = emp.max_drawdown(daily_profit)
+            statistics_dict['MaxDD'] = round(emp.max_drawdown(daily_profit), 4)
             # plt.plot(statistics_dict["MaxDD"], '-', label=df_name, marker="")
             # plt.title("MaxDD")
             # ar_figname = os.path.join(self.output, self.plot_name + "_maxdd.png")
