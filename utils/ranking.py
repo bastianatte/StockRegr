@@ -8,23 +8,26 @@ rank_log = get_logger(__name__)
 rank_log.setLevel(logging.INFO)
 
 
-def rank_exe(df, clm):
+def rank_exe(df, pred_column):
     lsp = 0
     i = 0
     df_daily_profit = pd.DataFrame(columns=[rc["rank_df"]])
     dfs_long = []
     dfs_short = []
-    df_rank = df.sort_values([mc["date_clm"], clm], ascending=[True, False])
+    df_rank = df.sort_values([mc["date_clm"], pred_column], ascending=[True, False])
     date_list = list(df_rank.Date.unique())
     date_list.sort()
     for date in date_list[:-1]:
         i += 1
         data_date = df_rank[df_rank.Date == date]
         data_date = data_date.drop_duplicates(subset=[mc["ticker"]])  # is that useful?
+        data_date = data_date.sort_values([mc["label"]], ascending=[False])
         long_part = data_date.iloc[:rc["stocks_number"]]
         short_part = data_date.iloc[-rc["stocks_number"]:]
         dp, lsp = long_short_profit(long_part, short_part, lsp)
         df_daily_profit.loc[i] = [date, lsp, dp]
+        # print("long part: \n",  long_part[mc["label"]])
+        # print("short part: \n", short_part[mc["label"]])
         dfs_long.append(long_part)
         dfs_short.append(short_part)
     long = pd.concat(dfs_long)

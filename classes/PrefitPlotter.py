@@ -26,6 +26,7 @@ class prefit_plotter(object):
         self.plot_proc()
         self.plot_hist_proc()
         self.plot_rsi()
+        self.plot_hist_rsi()
         self.plot_macd()
         self.plot_acc_dist_oscill()
         self.plot_williams()
@@ -132,6 +133,15 @@ class prefit_plotter(object):
         plt.legend(loc='upper left', frameon=False)
         plt.xlabel("year")
         figname = os.path.join(self.output, self.df['ticker'].iloc[-1] + "_rsi" + ".png")
+        plt.savefig(figname, dpi=200)
+        plt.close()
+
+    def plot_hist_rsi(self):
+        plt.hist(self.df["ta_rsi"], bins=400, label='RSI')
+        plt.legend(loc='upper left', frameon=False)
+        plt.xlabel("values")
+        plt.ylabel("counts")
+        figname = os.path.join(self.output, self.df['ticker'].iloc[-1] + "_hist_rsi" + ".png")
         plt.savefig(figname, dpi=200)
         plt.close()
 
