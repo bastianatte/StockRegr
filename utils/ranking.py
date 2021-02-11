@@ -21,13 +21,14 @@ def rank_exe(df, pred_column):
         i += 1
         data_date = df_rank[df_rank.Date == date]
         data_date = data_date.drop_duplicates(subset=[mc["ticker"]])  # is that useful?
-        data_date = data_date.sort_values([mc["label"]], ascending=[False])
+        # data_date = data_date.sort_values([mc["label"]], ascending=[False])
         long_part = data_date.iloc[:rc["stocks_number"]]
         short_part = data_date.iloc[-rc["stocks_number"]:]
         dp, lsp = long_short_profit(long_part, short_part, lsp)
         df_daily_profit.loc[i] = [date, lsp, dp]
-        # print("long part: \n",  long_part[mc["label"]])
-        # print("short part: \n", short_part[mc["label"]])
+        print(data_date)
+        print("long: ", pred_column, "\n", long_part[["Date", pred_column, mc["label"]]].head(5))
+        print("short: ", pred_column, "\n", short_part[["Date", pred_column, mc["label"]]].head(5))
         dfs_long.append(long_part)
         dfs_short.append(short_part)
     long = pd.concat(dfs_long)
