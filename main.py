@@ -38,7 +38,7 @@ def create_df(ipt, opt):
     print("folder: ", folder)
     for csv_file in os.listdir(ipt):
         if fnmatch.fnmatch(csv_file, '*.csv'):
-            if csv_cnt == 20:
+            if csv_cnt == -1:
                 break
             else:
                 csv_cnt += 1
