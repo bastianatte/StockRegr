@@ -2,7 +2,7 @@
 import datetime as dt
 
 main_conf = {
-    "prefit_plot_flag": False,
+    "prefit_plot_flag": True,
     "columns": ["Date", "Close", "Open", "Volume", "High", "Low"],
     "train_window": [
         (dt.datetime.strptime("2000-01-01", "%Y-%m-%d"), dt.datetime.strptime("2004-01-01", "%Y-%m-%d")),
