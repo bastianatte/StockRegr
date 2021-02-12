@@ -47,6 +47,7 @@ main_conf = {
     "lasso": "lasso_pred",
     "enr": "enr_pred",
     "dtr": "dtr_pred",
+    "ensemble": "ensemble_pred",
     "features": ["Close", "Open", "Volume", "High", "Low",
                  "lagged_daily_rt_1", "lagged_daily_rt_2", "lagged_daily_rt_3",
                  "lagged_daily_rt_4", "lagged_daily_rt_4", "lagged_daily_rt_5",

@@ -1,7 +1,8 @@
 import logging
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.linear_model import LinearRegression, Lasso, ElasticNet
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, StackingRegressor
+from sklearn.linear_model import LinearRegression, Lasso, ElasticNet, RidgeCV
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.svm import LinearSVR, SVR
 from sklearn.neighbors import KNeighborsRegressor
 from utils.misc import get_logger
 from config import regress_models_conf as rmc
@@ -78,3 +79,25 @@ class RegressorModels(object):
         model = DecisionTreeRegressor()
         model.fit(self.x_train, self.y_train)
         return model.predict(self.x_test)
+
+    def reg_ensemble(self):
+        """
+        Regressors Ensemble
+        :return: ensempre prediction
+        """
+        estimators = [
+            ("str", DecisionTreeRegressor()),
+            ("eln", ElasticNet()),
+            ("lasso", Lasso()),
+            ("knr", KNeighborsRegressor()),
+            ("gbr", GradientBoostingRegressor()),
+            ("lr", LinearRegression()),
+            ("rf", RandomForestRegressor())
+
+        ]
+        reg = StackingRegressor(estimators=estimators,
+                                final_estimator=RandomForestRegressor(n_estimators=1,
+                                                                      random_state=42)
+        )
+        reg.fit(self.x_train, self.y_train)
+        return reg.predict(self.x_test)
