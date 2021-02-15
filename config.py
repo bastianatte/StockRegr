@@ -19,7 +19,7 @@ main_conf = {
         (dt.datetime.strptime("2011-01-01", "%Y-%m-%d"), dt.datetime.strptime("2015-01-01", "%Y-%m-%d")),
         (dt.datetime.strptime("2012-01-01", "%Y-%m-%d"), dt.datetime.strptime("2016-01-01", "%Y-%m-%d")),
         (dt.datetime.strptime("2013-01-01", "%Y-%m-%d"), dt.datetime.strptime("2017-01-01", "%Y-%m-%d")),
-        (dt.datetime.strptime("2014-01-01", "%Y-%m-%d"), dt.datetime.strptime("2018-01-01", "%Y-%m-%d")),
+        # (dt.datetime.strptime("2014-01-01", "%Y-%m-%d"), dt.datetime.strptime("2018-01-01", "%Y-%m-%d")),
     ],
     "rfr": 0.05,
     "ticker": "ticker",
