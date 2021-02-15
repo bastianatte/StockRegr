@@ -96,7 +96,68 @@ class RegressorModels(object):
 
         ]
         reg = StackingRegressor(estimators=estimators,
-                                final_estimator=RandomForestRegressor(n_estimators=1,
+                                final_estimator=RandomForestRegressor(n_estimators=10,
+                                                                      random_state=42)
+        )
+        reg.fit(self.x_train, self.y_train)
+        return reg.predict(self.x_test)
+
+    def reg_ensemble_1(self):
+        """
+        Regressors Ensemble
+        :return: ensempre prediction
+        """
+        estimators = [
+            ("dtr", DecisionTreeRegressor()),
+            ("eln", ElasticNet()),
+            ("lasso", Lasso()),
+            ("gbr", GradientBoostingRegressor()),
+            ("lr", LinearRegression()),
+            ("rf", RandomForestRegressor())
+
+        ]
+        reg = StackingRegressor(estimators=estimators,
+                                final_estimator=RandomForestRegressor(n_estimators=10,
+                                                                      random_state=42)
+        )
+        reg.fit(self.x_train, self.y_train)
+        return reg.predict(self.x_test)
+
+    def reg_ensemble_2(self):
+        """
+        Regressors Ensemble
+        :return: ensempre prediction
+        """
+        estimators = [
+            ("eln", ElasticNet()),
+            ("lasso", Lasso()),
+            ("gbr", GradientBoostingRegressor()),
+            ("lr", LinearRegression()),
+            ("rf", RandomForestRegressor())
+
+        ]
+        reg = StackingRegressor(estimators=estimators,
+                                final_estimator=RandomForestRegressor(n_estimators=10,
+                                                                      random_state=42)
+        )
+        reg.fit(self.x_train, self.y_train)
+        return reg.predict(self.x_test)
+
+    def reg_ensemble_3(self):
+        """
+        Regressors Ensemble
+        :return: ensempre prediction
+        """
+        estimators = [
+            ("eln", ElasticNet()),
+            ("lasso", Lasso()),
+            ("gbr", GradientBoostingRegressor()),
+            ("lr", LinearRegression()),
+            ("rf", RandomForestRegressor())
+
+        ]
+        reg = StackingRegressor(estimators=estimators,
+                                final_estimator=RandomForestRegressor(n_estimators=10,
                                                                       random_state=42)
         )
         reg.fit(self.x_train, self.y_train)
