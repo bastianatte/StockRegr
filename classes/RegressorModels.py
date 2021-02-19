@@ -96,8 +96,7 @@ class RegressorModels(object):
 
         ]
         reg = StackingRegressor(estimators=estimators,
-                                final_estimator=RandomForestRegressor(n_estimators=10,
-                                                                      random_state=42)
+                                final_estimator=RandomForestRegressor()
         )
         reg.fit(self.x_train, self.y_train)
         return reg.predict(self.x_test)
@@ -137,9 +136,8 @@ class RegressorModels(object):
 
         ]
         reg = StackingRegressor(estimators=estimators,
-                                final_estimator=RandomForestRegressor(n_estimators=10,
-                                                                      random_state=42)
-        )
+                                final_estimator=RandomForestRegressor(),
+                                cv=5)
         reg.fit(self.x_train, self.y_train)
         return reg.predict(self.x_test)
 
