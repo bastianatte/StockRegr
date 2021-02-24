@@ -114,7 +114,6 @@ def multiple_profit_plot(df_list, output):
     rf_stat_df = rf_stat_df.join(lasso_stat_df["lasso"])
     rf_stat_df = rf_stat_df.join(enr_stat_df["enr"])
     rf_stat_df = rf_stat_df.join(ensemble_stat_df["ensemble"])
-    rf_stat_df = rf_stat_df.join(ensemble_stat_df["ensemble"])
     rf_stat_df = rf_stat_df.join((ensemble1_stat_dict["ensemble1"]))
     rf_stat_df = rf_stat_df.join((ensemble2_stat_dict["ensemble2"]))
     rf_stat_df = rf_stat_df.join((ensemble3_stat_dict["ensemble3"]))
