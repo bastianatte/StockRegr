@@ -47,6 +47,7 @@ main_conf = {
     "lasso": "lasso_pred",
     "enr": "enr_pred",
     "dtr": "dtr_pred",
+    "vot_ens": "vot_ens_pred",
     "ensemble": "ensemble_pred",
     "ensemble2": "ensemble2_pred",
     "features": ["Close", "Open", "Volume", "High", "Low",

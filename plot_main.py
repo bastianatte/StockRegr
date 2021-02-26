@@ -91,7 +91,8 @@ def multiple_profit_plot(df_list, output):
         df_name = item[1]
         if pc["daily_profit"] in df.columns.to_list():
             dfs_profit_list.append((df, df_name))
-    rf, lr, gbr, knr, lasso, enr, dtr, ensemble, ens1, ens2, ens3 = create_list_of_same_models(dfs_profit_list)
+    # rf, lr, gbr, knr, lasso, enr, dtr, ensemble, ens1, ens2, ens3 = create_list_of_same_models(dfs_profit_list)
+    rf, lr, gbr, knr, lasso, enr, dtr, vot_ens = create_list_of_same_models(dfs_profit_list)
 
     # make profit plot and create statistical dataframe
     rf_df, rf_stat_dict, rf_stat_df = make_profit_and_create_stat_dict(rf, output, "rf")
@@ -101,10 +102,12 @@ def multiple_profit_plot(df_list, output):
     knr_df, knr_stat_dict, knr_stat_df = make_profit_and_create_stat_dict(knr, output, "knr")
     lasso_df, lasso_stat_dict, lasso_stat_df = make_profit_and_create_stat_dict(lasso, output, "lasso")
     enr_df, enr_stat_dict, enr_stat_df = make_profit_and_create_stat_dict(enr, output, "enr")
-    ensemble_df, ensemble_stat_dict, ensemble_stat_df = make_profit_and_create_stat_dict(ensemble, output, "ensemble")
-    ensemble1_df, ensemble1_stat_dict, ensemble1_stat_df = make_profit_and_create_stat_dict(ens1, output, "ensemble1")
-    ensemble2_df, ensemble2_stat_dict, ensemble2_stat_df = make_profit_and_create_stat_dict(ens2, output, "ensemble2")
-    ensemble3_df, ensemble3_stat_dict, ensemble3_stat_df = make_profit_and_create_stat_dict(ens3, output, "ensemble3")
+    vot_ens_df, vot_ens_stat_dict, vot_ens_stat_df = make_profit_and_create_stat_dict(vot_ens, output, "vot_ens")
+
+    # ensemble_df, ensemble_stat_dict, ensemble_stat_df = make_profit_and_create_stat_dict(ensemble, output, "ensemble")
+    # ensemble1_df, ensemble1_stat_dict, ensemble1_stat_df = make_profit_and_create_stat_dict(ens1, output, "ensemble1")
+    # ensemble2_df, ensemble2_stat_dict, ensemble2_stat_df = make_profit_and_create_stat_dict(ens2, output, "ensemble2")
+    # ensemble3_df, ensemble3_stat_dict, ensemble3_stat_df = make_profit_and_create_stat_dict(ens3, output, "ensemble3")
 
     # filling statistical variables
     rf_stat_df = rf_stat_df.join(lr_stat_df["lr"])
@@ -113,15 +116,17 @@ def multiple_profit_plot(df_list, output):
     rf_stat_df = rf_stat_df.join(knr_stat_df["knr"])
     rf_stat_df = rf_stat_df.join(lasso_stat_df["lasso"])
     rf_stat_df = rf_stat_df.join(enr_stat_df["enr"])
-    rf_stat_df = rf_stat_df.join(ensemble_stat_df["ensemble"])
-    rf_stat_df = rf_stat_df.join((ensemble1_stat_dict["ensemble1"]))
-    rf_stat_df = rf_stat_df.join((ensemble2_stat_dict["ensemble2"]))
-    rf_stat_df = rf_stat_df.join((ensemble3_stat_dict["ensemble3"]))
+    rf_stat_df = rf_stat_df.join(vot_ens_stat_df["vot_ens"])
+    # rf_stat_df = rf_stat_df.join(ensemble_stat_df["ensemble"])
+    # rf_stat_df = rf_stat_df.join((ensemble1_stat_df["ensemble1"]))
+    # rf_stat_df = rf_stat_df.join(ensemble2_stat_df["ensemble2"])
+    # rf_stat_df = rf_stat_df.join((ensemble3_stat_df["ensemble3"]))
     make_metrics_plot(rf_stat_df, output)
 
     # total profit
-    df_total_list = (lr_df + rf_df + dtr_df + gbr_df + knr_df + lasso_df + enr_df
-                     + ensemble_df + ensemble1_df + ensemble2_df + ensemble3_df)
+    # df_total_list = (lr_df + rf_df + dtr_df + gbr_df + knr_df + lasso_df + enr_df
+    #                  + ensemble_df + ensemble1_df + ensemble2_df + ensemble3_df)
+    df_total_list = lr_df + rf_df + dtr_df + gbr_df + knr_df + lasso_df + enr_df + vot_ens_df
     make_profit_plot(df_total_list, output, "total")
     logger.info("Multiple profit done plots done!!")
 
@@ -216,10 +221,11 @@ def create_list_of_same_models(df_list):
     lasso = []
     enr = []
     dtr = []
-    ensemble = []
-    ensemble1 = []
-    ensemble2 = []
-    ensemble3 = []
+    vot_ens = []
+    # ensemble = []
+    # ensemble1 = []
+    # ensemble2 = []
+    # ensemble3 = []
     for item in df_list:
         df = item[0]
         df_name = item[1]
@@ -247,28 +253,33 @@ def create_list_of_same_models(df_list):
             enr.append((df, df_name))
             enr = asc_sort_tuple(enr)
             enr = profit_shift(enr)
-        if "ensemble" in df_name:
-            ensemble.append((df, df_name))
-            ensemble = asc_sort_tuple(ensemble)
-            ensemble = profit_shift(ensemble)
-        if "ensemble1" in df_name:
-            ensemble1.append((df, df_name))
-            ensemble1 = asc_sort_tuple(ensemble1)
-            ensemble1 = profit_shift(ensemble1)
-        if "ensemble2" in df_name:
-            ensemble2.append((df, df_name))
-            ensemble2 = asc_sort_tuple(ensemble2)
-            ensemble2 = profit_shift(ensemble2)
-        if "ensemble3" in df_name:
-            ensemble3.append((df, df_name))
-            ensemble3 = asc_sort_tuple(ensemble3)
-            ensemble3 = profit_shift(ensemble3)
+        if "vot_ens" in df_name:
+            vot_ens.append((df, df_name))
+            vot_ens = asc_sort_tuple(vot_ens)
+            vot_ens = profit_shift(vot_ens)
         elif "dtr" in df_name:
             dtr.append((df, df_name))
             dtr = asc_sort_tuple(dtr)
             dtr = profit_shift(dtr)
+        # if "ensemble" in df_name:
+        #     ensemble.append((df, df_name))
+        #     ensemble = asc_sort_tuple(ensemble)
+        #     ensemble = profit_shift(ensemble)
+        # if "ensemble1" in df_name:
+        #     ensemble1.append((df, df_name))
+        #     ensemble1 = asc_sort_tuple(ensemble1)
+        #     ensemble1 = profit_shift(ensemble1)
+        # if "ensemble2" in df_name:
+        #     ensemble2.append((df, df_name))
+        #     ensemble2 = asc_sort_tuple(ensemble2)
+        #     ensemble2 = profit_shift(ensemble2)
+        # if "ensemble3" in df_name:
+        #     ensemble3.append((df, df_name))
+        #     ensemble3 = asc_sort_tuple(ensemble3)
+        #     ensemble3 = profit_shift(ensemble3)
     logger.info("Create list of same models done!")
-    return rf, lr, gbr, knr, lasso, enr, dtr, ensemble, ensemble1, ensemble2, ensemble3
+    # return rf, lr, gbr, knr, lasso, enr, dtr, ensemble, ensemble1, ensemble2, ensemble3
+    return rf, lr, gbr, knr, lasso, enr, dtr, vot_ens
 
 
 if __name__ == '__main__':

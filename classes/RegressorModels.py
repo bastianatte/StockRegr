@@ -1,8 +1,9 @@
 import logging
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, StackingRegressor
-from sklearn.linear_model import LinearRegression, Lasso, ElasticNet, RidgeCV
+from sklearn.linear_model import LinearRegression, Lasso, ElasticNet  # RidgeCV
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.svm import LinearSVR, SVR
+from sklearn.ensemble import VotingRegressor
+# from sklearn.svm import LinearSVR, SVR
 from sklearn.neighbors import KNeighborsRegressor
 from utils.misc import get_logger
 from config import regress_models_conf as rmc
@@ -17,6 +18,25 @@ class RegressorModels(object):
         self.y_train = y_train
         self.x_test = x_test
 
+    def voting_regrssor_ensemble(self):
+        lr, lr_pred = self.linear_regr()
+        rf, rf_pred = self.random_forest_regr()
+        gbr, gbr_pred = self.gradient_boost_regr()
+        knr, knr_pred = self.kneighbors_regr()
+        lasso, lasso_pred = self.lasso_regr()
+        enr, enr_pred = self.elastic_net_regr()
+        dtr, dtr_pred = self.decis_tree_regr()
+        er = VotingRegressor([
+            ('lr', lr),
+            ('rf', rf),
+            ('gbr', gbr),
+            ('knr', knr),
+            ('lasso', lasso),
+            ('enr', enr),
+            ('dtr', dtr)
+            ])
+        return er.fit(self.x_train, self.y_train).predict(self.x_test)
+
     def random_forest_regr(self):
         """
         Random Forest fit
@@ -24,7 +44,7 @@ class RegressorModels(object):
         """
         model = RandomForestRegressor(max_features=rmc["rf_max_features"])
         model.fit(self.x_train, self.y_train)
-        return model.predict(self.x_test)
+        return model, model.predict(self.x_test)
 
     def linear_regr(self):
         """
@@ -33,7 +53,7 @@ class RegressorModels(object):
         """
         model = LinearRegression()
         model.fit(self.x_train, self.y_train)
-        return model.predict(self.x_test)
+        return model, model.predict(self.x_test)
 
     def gradient_boost_regr(self):
         """
@@ -42,7 +62,7 @@ class RegressorModels(object):
         """
         model = GradientBoostingRegressor()
         model.fit(self.x_train, self.y_train)
-        return model.predict(self.x_test)
+        return model, model.predict(self.x_test)
 
     def kneighbors_regr(self):
         """
@@ -51,7 +71,7 @@ class RegressorModels(object):
         """
         model = KNeighborsRegressor()
         model.fit(self.x_train, self.y_train)
-        return model.predict(self.x_test)
+        return model, model.predict(self.x_test)
 
     def lasso_regr(self):
         """
@@ -60,7 +80,7 @@ class RegressorModels(object):
         """
         model = Lasso()
         model.fit(self.x_train, self.y_train)
-        return model.predict(self.x_test)
+        return model, model.predict(self.x_test)
 
     def elastic_net_regr(self):
         """
@@ -69,7 +89,7 @@ class RegressorModels(object):
         """
         model = ElasticNet()
         model.fit(self.x_train, self.y_train)
-        return model.predict(self.x_test)
+        return model, model.predict(self.x_test)
 
     def decis_tree_regr(self):
         """
@@ -78,7 +98,7 @@ class RegressorModels(object):
         """
         model = DecisionTreeRegressor()
         model.fit(self.x_train, self.y_train)
-        return model.predict(self.x_test)
+        return model, model.predict(self.x_test)
 
     def reg_ensemble(self):
         """
@@ -96,8 +116,7 @@ class RegressorModels(object):
 
         ]
         reg = StackingRegressor(estimators=estimators,
-                                final_estimator=RandomForestRegressor()
-        )
+                                final_estimator=RandomForestRegressor())
         reg.fit(self.x_train, self.y_train)
         return reg.predict(self.x_test)
 
@@ -117,8 +136,7 @@ class RegressorModels(object):
         ]
         reg = StackingRegressor(estimators=estimators,
                                 final_estimator=RandomForestRegressor(n_estimators=10,
-                                                                      random_state=42)
-        )
+                                                                      random_state=42))
         reg.fit(self.x_train, self.y_train)
         return reg.predict(self.x_test)
 
@@ -156,7 +174,6 @@ class RegressorModels(object):
         ]
         reg = StackingRegressor(estimators=estimators,
                                 final_estimator=RandomForestRegressor(n_estimators=10,
-                                                                      random_state=42)
-        )
+                                                                      random_state=42))
         reg.fit(self.x_train, self.y_train)
         return reg.predict(self.x_test)

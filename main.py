@@ -112,28 +112,30 @@ def create_prediction(df_test, xtrain, ytrain, xtest):
     :return: pred df
     """
     model = RegressorModels(xtrain, ytrain, xtest)
-    pred_rf = model.random_forest_regr()
-    pred_lr = model.linear_regr()
-    # pred_gbr = model.gradient_boost_regr()
-    # pred_knr = model.kneighbors_regr()
-    # pred_lasso = model.lasso_regr()
-    # pred_enr = model.elastic_net_regr()
-    # pred_dtr = model.decis_tree_regr()
-    pred_ensemble = model.reg_ensemble()
+    rf_mod, pred_rf = model.random_forest_regr()
+    lr_mod, pred_lr = model.linear_regr()
+    gbr_mod, pred_gbr = model.gradient_boost_regr()
+    knr_mod, pred_knr = model.kneighbors_regr()
+    lasso_mod, pred_lasso = model.lasso_regr()
+    enr_mod, pred_enr = model.elastic_net_regr()
+    dtr_mod, pred_dtr = model.decis_tree_regr()
+    pred_vot_ens = model.voting_regrssor_ensemble()
+    # pred_ensemble = model.reg_ensemble()
     # pred_ensemble_1 = model.reg_ensemble_1()
-    pred_ensemble_2 = model.reg_ensemble_2()
+    # pred_ensemble_2 = model.reg_ensemble_2()
     # pred_ensemble_3 = model.reg_ensemble_3()
     pred = df_test.copy()
     pred[mc["lr"]] = pred_lr
     pred[mc["rf"]] = pred_rf
-    # pred[mc["gbr"]] = pred_gbr
-    # pred[mc["knr"]] = pred_knr
-    # pred[mc["lasso"]] = pred_lasso
-    # pred[mc["enr"]] = pred_enr
-    # pred[mc["dtr"]] = pred_dtr
-    pred[mc["ensemble"]] = pred_ensemble
+    pred[mc["gbr"]] = pred_gbr
+    pred[mc["knr"]] = pred_knr
+    pred[mc["lasso"]] = pred_lasso
+    pred[mc["enr"]] = pred_enr
+    pred[mc["dtr"]] = pred_dtr
+    pred[mc["vot_ens"]] = pred_vot_ens
+    # pred[mc["ensemble"]] = pred_ensemble
     # pred["ensemble1"] = pred_ensemble_1
-    pred[mc["ensemble2"]] = pred_ensemble_2
+    # pred[mc["ensemble2"]] = pred_ensemble_2
     # pred["ensemble3"] = pred_ensemble_3
     return pred
 
@@ -170,7 +172,6 @@ def create_rank_and_store(df, model_clm, out_path, y_start, y_end, model_name):
 if __name__ == '__main__':
     logger.info("in main")
     df_pred_list = []
-    stock_cnt = 0
     wnd_cnt = 1
     dataframe = create_df(args.input, args.output)
     dataframe = dataframe.dropna()
@@ -179,6 +180,7 @@ if __name__ == '__main__':
     logger.info("{} train windows.".format(len(mc["train_window"])))
     start = time.time()
     for window in mc["train_window"]:
+        stock_cnt = 0
         df_pred_list.clear()
         window_start = time.time()
         bad_df_list = []
@@ -218,13 +220,14 @@ if __name__ == '__main__':
         # create rank for each model and store relevant quantities
         create_rank_and_store(dataframe_pred, mc["rf"], path_csv, y_from, y_to, "rf")
         create_rank_and_store(dataframe_pred, mc["lr"], path_csv, y_from, y_to, "lr")
-        # create_rank_and_store(dataframe_pred, mc["gbr"], path_csv, y_from, y_to, "gbr")
-        # create_rank_and_store(dataframe_pred, mc["knr"], path_csv, y_from, y_to, "knr")
-        # create_rank_and_store(dataframe_pred, mc["lasso"], path_csv, y_from, y_to, "lasso")
-        # create_rank_and_store(dataframe_pred, mc["enr"], path_csv, y_from, y_to, "enr")
-        # create_rank_and_store(dataframe_pred, mc["dtr"], path_csv, y_from, y_to, "dtr")
-        create_rank_and_store(dataframe_pred, mc["ensemble"], path_csv, y_from, y_to, "ensemble")
+        create_rank_and_store(dataframe_pred, mc["gbr"], path_csv, y_from, y_to, "gbr")
+        create_rank_and_store(dataframe_pred, mc["knr"], path_csv, y_from, y_to, "knr")
+        create_rank_and_store(dataframe_pred, mc["lasso"], path_csv, y_from, y_to, "lasso")
+        create_rank_and_store(dataframe_pred, mc["enr"], path_csv, y_from, y_to, "enr")
+        create_rank_and_store(dataframe_pred, mc["dtr"], path_csv, y_from, y_to, "dtr")
+        create_rank_and_store(dataframe_pred, mc["vot_ens"], path_csv, y_from, y_to, "vot_ens")
+        # create_rank_and_store(dataframe_pred, mc["ensemble"], path_csv, y_from, y_to, "ensemble")
         # create_rank_and_store(dataframe_pred, mc["ensemble1"], path_csv, y_from, y_to, "ensemble1")
-        create_rank_and_store(dataframe_pred, mc["ensemble2"], path_csv, y_from, y_to, "ensemble2")
+        # create_rank_and_store(dataframe_pred, mc["ensemble2"], path_csv, y_from, y_to, "ensemble2")
         # create_rank_and_store(dataframe_pred, mc["ensemble3"], path_csv, y_from, y_to, "ensemble3")
         logger.info("Main Analysis Done")
