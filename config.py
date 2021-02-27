@@ -49,6 +49,7 @@ main_conf = {
     "dtr": "dtr_pred",
     "vot_ens": "vot_ens_pred",
     "ensemble": "ensemble_pred",
+    "ensemble1": "ensemble1_pred",
     "ensemble2": "ensemble2_pred",
     "features": ["Close", "Open", "Volume", "High", "Low",
                  "lagged_daily_rt_1", "lagged_daily_rt_2", "lagged_daily_rt_3",

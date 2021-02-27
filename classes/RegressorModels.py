@@ -37,6 +37,36 @@ class RegressorModels(object):
             ])
         return er.fit(self.x_train, self.y_train).predict(self.x_test)
 
+    def voting_regressor_ensemble_1(self):
+        lr, lr_pred = self.linear_regr()
+        rf, rf_pred = self.random_forest_regr()
+        gbr, gbr_pred = self.gradient_boost_regr()
+        lasso, lasso_pred = self.lasso_regr()
+        enr, enr_pred = self.elastic_net_regr()
+        er = VotingRegressor([
+            ('lr', lr),
+            ('rf', rf),
+            ('gbr', gbr),
+            ('lasso', lasso),
+            ('enr', enr),
+            ])
+        return er.fit(self.x_train, self.y_train).predict(self.x_test)
+
+    def voting_regressor_ensemble_2(self):
+        lr, lr_pred = self.linear_regr()
+        rf, rf_pred = self.random_forest_regr()
+        lasso, lasso_pred = self.lasso_regr()
+        enr, enr_pred = self.elastic_net_regr()
+        er = VotingRegressor([
+            ('lr', lr),
+            ('rf', rf),
+            ('lasso', lasso),
+            ('enr', enr),
+            ])
+        return er.fit(self.x_train, self.y_train).predict(self.x_test)
+
+
+
     def random_forest_regr(self):
         """
         Random Forest fit
