@@ -38,7 +38,7 @@ def create_df(ipt, opt):
     print("folder: ", folder)
     for csv_file in os.listdir(ipt):
         if fnmatch.fnmatch(csv_file, '*.csv'):
-            if csv_cnt == -1:
+            if csv_cnt == 10:
                 break
             else:
                 csv_cnt += 1
@@ -119,11 +119,12 @@ def create_prediction(df_test, xtrain, ytrain, xtest):
     lasso_mod, pred_lasso = model.lasso_regr()
     enr_mod, pred_enr = model.elastic_net_regr()
     dtr_mod, pred_dtr = model.decis_tree_regr()
-    pred_vot_ens = model.voting_regrssor_ensemble()
-    pred_ensemble = model.voting_regressor_ensemble_1()
-    pred_ensemble_1 = model.voting_regressor_ensemble_2()
-    # pred_ensemble_2 = model.reg_ensemble_2()
-    # pred_ensemble_3 = model.reg_ensemble_3()
+    pred_vot_ens_full = model.voting_regrssor_ensemble_full()
+    pred_vot_ens_1 = model.voting_regressor_ensemble_1()
+    pred_vot_ens_best = model.voting_regressor_ensemble_best()
+    pred_reg_ens_full = model.reg_ensemble_full()
+    pred_reg_ens_best = model.reg_ensemble_best()
+    pred_reg_ens_best_cv = model.reg_ensemble_best_cv()
     pred = df_test.copy()
     pred[mc["lr"]] = pred_lr
     pred[mc["rf"]] = pred_rf
@@ -132,11 +133,12 @@ def create_prediction(df_test, xtrain, ytrain, xtest):
     pred[mc["lasso"]] = pred_lasso
     pred[mc["enr"]] = pred_enr
     pred[mc["dtr"]] = pred_dtr
-    pred[mc["vot_ens"]] = pred_vot_ens
-    pred[mc["ensemble"]] = pred_ensemble
-    pred[mc["ensemble1"]] = pred_ensemble_1
-    # pred[mc["ensemble2"]] = pred_ensemble_2
-    # pred["ensemble3"] = pred_ensemble_3
+    pred[mc["vot_ens_full"]] = pred_vot_ens_full
+    pred[mc["vot_ens_1"]] = pred_vot_ens_1
+    pred[mc["vot_ens_best"]] = pred_vot_ens_best
+    pred[mc["reg_ens_full"]] = pred_reg_ens_full
+    pred[mc["reg_ens_best"]] = pred_reg_ens_best
+    pred[mc["reg_ens_best_cv"]] = pred_reg_ens_best_cv
     return pred
 
 
@@ -225,9 +227,12 @@ if __name__ == '__main__':
         create_rank_and_store(dataframe_pred, mc["lasso"], path_csv, y_from, y_to, "lasso")
         create_rank_and_store(dataframe_pred, mc["enr"], path_csv, y_from, y_to, "enr")
         create_rank_and_store(dataframe_pred, mc["dtr"], path_csv, y_from, y_to, "dtr")
-        create_rank_and_store(dataframe_pred, mc["vot_ens"], path_csv, y_from, y_to, "vot_ens")
-        create_rank_and_store(dataframe_pred, mc["ensemble"], path_csv, y_from, y_to, "ensemble")
-        create_rank_and_store(dataframe_pred, mc["ensemble1"], path_csv, y_from, y_to, "ensemble1")
-        # create_rank_and_store(dataframe_pred, mc["ensemble2"], path_csv, y_from, y_to, "ensemble2")
-        # create_rank_and_store(dataframe_pred, mc["ensemble3"], path_csv, y_from, y_to, "ensemble3")
+
+        create_rank_and_store(dataframe_pred, mc["vot_ens_full"], path_csv, y_from, y_to, "vot_ens_full")
+        create_rank_and_store(dataframe_pred, mc["vot_ens_1"], path_csv, y_from, y_to, "vot_ens_1")
+        create_rank_and_store(dataframe_pred, mc["vot_ens_best"], path_csv, y_from, y_to, "vot_ens_best")
+
+        create_rank_and_store(dataframe_pred, mc["reg_ens_full"], path_csv, y_from, y_to, "reg_ens_full")
+        create_rank_and_store(dataframe_pred, mc["reg_ens_best"], path_csv, y_from, y_to, "reg_ens_best")
+        create_rank_and_store(dataframe_pred, mc["reg_ens_best_cv"], path_csv, y_from, y_to, "reg_ens_best_cv")
         logger.info("Main Analysis Done")

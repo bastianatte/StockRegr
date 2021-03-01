@@ -35,7 +35,7 @@ def plot_exe(inpt, output):
         if fnmatch.fnmatch(csv_file, '*.csv'):
             # create list of dfs
             csv, csv_string = csv_maker(str(inpt), csv_file)
-            print(csv_string)
+            # print(csv_string)
             df = pd.read_csv(csv, parse_dates=[mc["date_clm"]], index_col=0)
             df_temp = df.copy()
             df_temp = setting_date_as_index(df_temp)
@@ -91,8 +91,9 @@ def multiple_profit_plot(df_list, output):
         df_name = item[1]
         if pc["daily_profit"] in df.columns.to_list():
             dfs_profit_list.append((df, df_name))
-    # rf, lr, gbr, knr, lasso, enr, dtr, ensemble, ens1, ens2, ens3 = create_list_of_same_models(dfs_profit_list)
-    rf, lr, gbr, knr, lasso, enr, dtr, vot_ens, ensemble, ens1 = create_list_of_same_models(dfs_profit_list)
+            print(df_name)
+
+    rf, lr, gbr, knr, lasso, enr, dtr, vef, ve1, veb, ef, eb, ebcv = create_list_of_same_models(dfs_profit_list)
 
     # make profit plot and create statistical dataframe
     rf_df, rf_stat_dict, rf_stat_df = make_profit_and_create_stat_dict(rf, output, "rf")
@@ -102,11 +103,12 @@ def multiple_profit_plot(df_list, output):
     knr_df, knr_stat_dict, knr_stat_df = make_profit_and_create_stat_dict(knr, output, "knr")
     lasso_df, lasso_stat_dict, lasso_stat_df = make_profit_and_create_stat_dict(lasso, output, "lasso")
     enr_df, enr_stat_dict, enr_stat_df = make_profit_and_create_stat_dict(enr, output, "enr")
-    vot_ens_df, vot_ens_stat_dict, vot_ens_stat_df = make_profit_and_create_stat_dict(vot_ens, output, "vot_ens")
-    ensemble_df, ensemble_stat_dict, ensemble_stat_df = make_profit_and_create_stat_dict(ensemble, output, "ensemble")
-    ensemble1_df, ensemble1_stat_dict, ensemble1_stat_df = make_profit_and_create_stat_dict(ens1, output, "ensemble1")
-    # ensemble2_df, ensemble2_stat_dict, ensemble2_stat_df = make_profit_and_create_stat_dict(ens2, output, "ensemble2")
-    # ensemble3_df, ensemble3_stat_dict, ensemble3_stat_df = make_profit_and_create_stat_dict(ens3, output, "ensemble3")
+    vef_df, vef_stat_dict, vef_stat_df = make_profit_and_create_stat_dict(vef, output, "vot_ens_full")
+    ve1_df, ve1_stat_dict, ve1_stat_df = make_profit_and_create_stat_dict(ve1, output, "vot_ens_1")
+    veb_df, veb_stat_dict, veb_stat_df = make_profit_and_create_stat_dict(veb, output, "vot_ens_best")
+    ref_df, ref_stat_dict, ref_stat_df = make_profit_and_create_stat_dict(ef, output, "reg_ens_full")
+    reb_df, reb_stat_dict, reb_stat_df = make_profit_and_create_stat_dict(eb, output, "reg_ens_best")
+    rebcv_df, rebcv_stat_dict, rebcv_stat_df = make_profit_and_create_stat_dict(ebcv, output, "reg_ens_best_cv")
 
     # filling statistical variables
     rf_stat_df = rf_stat_df.join(lr_stat_df["lr"])
@@ -115,17 +117,15 @@ def multiple_profit_plot(df_list, output):
     rf_stat_df = rf_stat_df.join(knr_stat_df["knr"])
     rf_stat_df = rf_stat_df.join(lasso_stat_df["lasso"])
     rf_stat_df = rf_stat_df.join(enr_stat_df["enr"])
-    rf_stat_df = rf_stat_df.join(vot_ens_stat_df["vot_ens"])
-    rf_stat_df = rf_stat_df.join(ensemble_stat_df["ensemble"])
-    rf_stat_df = rf_stat_df.join(ensemble1_stat_df["ensemble1"])
-    # rf_stat_df = rf_stat_df.join(ensemble2_stat_df["ensemble2"])
-    # rf_stat_df = rf_stat_df.join((ensemble3_stat_df["ensemble3"]))
+    rf_stat_df = rf_stat_df.join(vef_stat_df["vot_ens_full"])
+    rf_stat_df = rf_stat_df.join(ve1_stat_df["vot_ens_1"])
+    rf_stat_df = rf_stat_df.join(veb_stat_df["vot_ens_best"])
+    rf_stat_df = rf_stat_df.join(ref_stat_df["reg_ens_full"])
+    rf_stat_df = rf_stat_df.join(reb_stat_df["reg_ens_best"])
+    rf_stat_df = rf_stat_df.join(rebcv_stat_df["reg_ens_best_cv"])
     make_metrics_plot(rf_stat_df, output)
-
-    # total profit
-    # df_total_list = (lr_df + rf_df + dtr_df + gbr_df + knr_df + lasso_df + enr_df
-    #                  + ensemble_df + ensemble1_df + ensemble2_df + ensemble3_df)
-    df_total_list = lr_df + rf_df + dtr_df + gbr_df + knr_df + lasso_df + enr_df + vot_ens_df + ensemble_df + ensemble1_df
+    df_total_list = (lr_df + rf_df + dtr_df + gbr_df + knr_df + lasso_df + enr_df + vef_df + ve1_df +
+                     veb_df + ref_df + reb_df + rebcv_df)
     make_profit_plot(df_total_list, output, "total")
     logger.info("Multiple profit done plots done!!")
 
@@ -170,7 +170,7 @@ def make_profit_plot(model_list, output, model_name):
     :param model_name: model name
     :return: None
     """
-    logger.info("... in make {} profit plot".format(model_name))
+    # logger.info("... in make {} profit plot".format(model_name))
     model = ProfitPlotter(model_list, model_name, output)
     model.make_multiple_profit_plot()
     model.make_multiple_profit_plot_ranking()
@@ -178,10 +178,10 @@ def make_profit_plot(model_list, output, model_name):
 
 
 def make_pyfolio_plot(model_list, output, model_name):
-    logger.info("... in make {} pyfolio plot".format(model_name))
+    # logger.info("... in make {} pyfolio plot".format(model_name))
     model = ProfitPlotter(model_list, model_name, output)
     stat_dict = model.make_empirical()
-    logger.info("{} pyfolio plot done!".format(model_name))
+    # logger.info("{} plot done!".format(model_name))
     return stat_dict
 
 
@@ -220,11 +220,12 @@ def create_list_of_same_models(df_list):
     lasso = []
     enr = []
     dtr = []
-    vot_ens = []
-    ensemble = []
-    ensemble1 = []
-    # ensemble2 = []
-    # ensemble3 = []
+    ve_full = []
+    ve_1 = []
+    ve_best = []
+    re_full = []
+    re_best = []
+    re_best_cv = []
     for item in df_list:
         df = item[0]
         df_name = item[1]
@@ -252,33 +253,36 @@ def create_list_of_same_models(df_list):
             enr.append((df, df_name))
             enr = asc_sort_tuple(enr)
             enr = profit_shift(enr)
-        if "vot_ens" in df_name:
-            vot_ens.append((df, df_name))
-            vot_ens = asc_sort_tuple(vot_ens)
-            vot_ens = profit_shift(vot_ens)
-        elif "dtr" in df_name:
+        if "dtr" in df_name:
             dtr.append((df, df_name))
             dtr = asc_sort_tuple(dtr)
             dtr = profit_shift(dtr)
-        if "ensemble" in df_name:
-            ensemble.append((df, df_name))
-            ensemble = asc_sort_tuple(ensemble)
-            ensemble = profit_shift(ensemble)
-        if "ensemble1" in df_name:
-            ensemble1.append((df, df_name))
-            ensemble1 = asc_sort_tuple(ensemble1)
-            ensemble1 = profit_shift(ensemble1)
-        # if "ensemble2" in df_name:
-        #     ensemble2.append((df, df_name))
-        #     ensemble2 = asc_sort_tuple(ensemble2)
-        #     ensemble2 = profit_shift(ensemble2)
-        # if "ensemble3" in df_name:
-        #     ensemble3.append((df, df_name))
-        #     ensemble3 = asc_sort_tuple(ensemble3)
-        #     ensemble3 = profit_shift(ensemble3)
+        if "vot_ens_full" in df_name:
+            ve_full.append((df, df_name))
+            ve_full = asc_sort_tuple(ve_full)
+            ve_full = profit_shift(ve_full)
+        if "vot_ens_1" in df_name:
+            ve_1.append((df, df_name))
+            ve_1 = asc_sort_tuple(ve_1)
+            ve_1 = profit_shift(ve_1)
+        if "vot_ens_best" in df_name:
+            ve_best.append((df, df_name))
+            ve_best = asc_sort_tuple(ve_best)
+            ve_best = profit_shift(ve_best)
+        if "reg_ens_full" in df_name:
+            re_full.append((df, df_name))
+            re_full = asc_sort_tuple(re_full)
+            re_full = profit_shift(re_full)
+        if "reg_ens_best" in df_name:
+            re_best.append((df, df_name))
+            re_best = asc_sort_tuple(re_best)
+            re_best = profit_shift(re_best)
+        if "reg_ens_best_cv" in df_name:
+            re_best_cv.append((df, df_name))
+            re_best_cv = asc_sort_tuple(re_best_cv)
+            re_best_cv = profit_shift(re_best_cv)
     logger.info("Create list of same models done!")
-    # return rf, lr, gbr, knr, lasso, enr, dtr, ensemble, ensemble1, ensemble2, ensemble3
-    return rf, lr, gbr, knr, lasso, enr, dtr, vot_ens, ensemble, ensemble1
+    return rf, lr, gbr, knr, lasso, enr, dtr, ve_full, ve_1, ve_best, re_full, re_best, re_best_cv
 
 
 if __name__ == '__main__':
@@ -291,4 +295,3 @@ if __name__ == '__main__':
     # multiple profit plot
     multiple_profit_plot(dfs, profit_output)
     logger.info("WELL DONE, plot main done!")
-

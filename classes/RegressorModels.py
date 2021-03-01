@@ -18,7 +18,7 @@ class RegressorModels(object):
         self.y_train = y_train
         self.x_test = x_test
 
-    def voting_regrssor_ensemble(self):
+    def voting_regrssor_ensemble_full(self):
         lr, lr_pred = self.linear_regr()
         rf, rf_pred = self.random_forest_regr()
         gbr, gbr_pred = self.gradient_boost_regr()
@@ -52,7 +52,7 @@ class RegressorModels(object):
             ])
         return er.fit(self.x_train, self.y_train).predict(self.x_test)
 
-    def voting_regressor_ensemble_2(self):
+    def voting_regressor_ensemble_best(self):
         lr, lr_pred = self.linear_regr()
         rf, rf_pred = self.random_forest_regr()
         lasso, lasso_pred = self.lasso_regr()
@@ -64,8 +64,6 @@ class RegressorModels(object):
             ('enr', enr),
             ])
         return er.fit(self.x_train, self.y_train).predict(self.x_test)
-
-
 
     def random_forest_regr(self):
         """
@@ -130,7 +128,7 @@ class RegressorModels(object):
         model.fit(self.x_train, self.y_train)
         return model, model.predict(self.x_test)
 
-    def reg_ensemble(self):
+    def reg_ensemble_full(self):
         """
         Regressors Ensemble
         :return: ensempre prediction
@@ -170,7 +168,7 @@ class RegressorModels(object):
         reg.fit(self.x_train, self.y_train)
         return reg.predict(self.x_test)
 
-    def reg_ensemble_2(self):
+    def reg_ensemble_best_cv(self):
         """
         Regressors Ensemble
         :return: ensempre prediction
@@ -178,7 +176,6 @@ class RegressorModels(object):
         estimators = [
             ("eln", ElasticNet()),
             ("lasso", Lasso()),
-            ("gbr", GradientBoostingRegressor()),
             ("lr", LinearRegression()),
             ("rf", RandomForestRegressor())
 
@@ -189,7 +186,7 @@ class RegressorModels(object):
         reg.fit(self.x_train, self.y_train)
         return reg.predict(self.x_test)
 
-    def reg_ensemble_3(self):
+    def reg_ensemble_best(self):
         """
         Regressors Ensemble
         :return: ensempre prediction
@@ -197,7 +194,6 @@ class RegressorModels(object):
         estimators = [
             ("eln", ElasticNet()),
             ("lasso", Lasso()),
-            ("gbr", GradientBoostingRegressor()),
             ("lr", LinearRegression()),
             ("rf", RandomForestRegressor())
 

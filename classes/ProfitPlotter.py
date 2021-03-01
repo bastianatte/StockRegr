@@ -71,14 +71,15 @@ class ProfitPlotter(object):
             df_name = item[1]
             df_lsp = df.loc[df.index.max(), "shifted_long_short_profit"]
             tup.append((df_name, df_lsp))
-        sorted_tup = disc_sort_tuple(tup)
+        # sorted_tup = disc_sort_tuple(tup)
         plt.figure(figsize=(5, 12))
-        for item in sorted_tup:
+        # for item in sorted_tup:
+        for item in tup:
             plt.bar(item[0], item[1], color='green')
         plt.xticks(rotation=70, fontsize=12)
         plt.yticks(fontsize=12)
         plt.title("Cumulative Return")
-        figname = os.path.join(self.output, self.plot_name + "_c_ranking" + ".png")
+        figname = os.path.join(self.output, self.plot_name + "_ranking" + ".png")
         plt.savefig(figname, dpi=200)
         plt.close()
 
