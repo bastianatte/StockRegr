@@ -227,12 +227,10 @@ if __name__ == '__main__':
         create_rank_and_store(dataframe_pred, mc["lasso"], path_csv, y_from, y_to, "lasso")
         create_rank_and_store(dataframe_pred, mc["enr"], path_csv, y_from, y_to, "enr")
         create_rank_and_store(dataframe_pred, mc["dtr"], path_csv, y_from, y_to, "dtr")
-
         create_rank_and_store(dataframe_pred, mc["vot_ens_full"], path_csv, y_from, y_to, "vot_ens_full")
         create_rank_and_store(dataframe_pred, mc["vot_ens_1"], path_csv, y_from, y_to, "vot_ens_1")
         create_rank_and_store(dataframe_pred, mc["vot_ens_best"], path_csv, y_from, y_to, "vot_ens_best")
-
         create_rank_and_store(dataframe_pred, mc["reg_ens_full"], path_csv, y_from, y_to, "reg_ens_full")
         create_rank_and_store(dataframe_pred, mc["reg_ens_best"], path_csv, y_from, y_to, "reg_ens_best")
         create_rank_and_store(dataframe_pred, mc["reg_ens_best_cv"], path_csv, y_from, y_to, "reg_ens_best_cv")
-        logger.info("Main Analysis Done")
+    logger.info("Main Analysis Done")

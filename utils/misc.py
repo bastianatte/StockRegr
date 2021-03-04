@@ -1,4 +1,4 @@
-
+import math
 import logging
 import json
 import os
@@ -111,3 +111,6 @@ def disc_sort_tuple(tup):
                 tup[j + 1] = temp
     return tup
 
+
+def first_n_digits(num, n):
+    return num // 10 ** (int(math.log(num, 10)) - n + 1)
