@@ -229,55 +229,55 @@ def create_list_of_same_models(df_list):
     for item in df_list:
         df = item[0]
         df_name = item[1]
-        if "lr" in df_name:
+        if "lr" is df_name:
             lr.append((df, df_name))
             lr = asc_sort_tuple(lr)
             lr = profit_shift(lr)
-        if "rf" in df_name:
+        if "rf" is df_name:
             rf.append((df, df_name))
             rf = asc_sort_tuple(rf)
             rf = profit_shift(rf)
-        if "gbr" in df_name:
+        if "gbr" is df_name:
             gbr.append((df, df_name))
             gbr = asc_sort_tuple(gbr)
             gbr = profit_shift(gbr)
-        if "knr" in df_name:
+        if "knr" is df_name:
             knr.append((df, df_name))
             knr = asc_sort_tuple(knr)
             knr = profit_shift(knr)
-        if "lasso" in df_name:
+        if "lasso" is df_name:
             lasso.append((df, df_name))
             lasso = asc_sort_tuple(lasso)
             lasso = profit_shift(lasso)
-        if "enr" in df_name:
+        if "enr" is df_name:
             enr.append((df, df_name))
             enr = asc_sort_tuple(enr)
             enr = profit_shift(enr)
-        if "dtr" in df_name:
+        if "dtr" is df_name:
             dtr.append((df, df_name))
             dtr = asc_sort_tuple(dtr)
             dtr = profit_shift(dtr)
-        if "vot_ens_full" in df_name:
+        if "vot_ens_full" is df_name:
             ve_full.append((df, df_name))
             ve_full = asc_sort_tuple(ve_full)
             ve_full = profit_shift(ve_full)
-        if "vot_ens_1" in df_name:
+        if "vot_ens_1" is df_name:
             ve_1.append((df, df_name))
             ve_1 = asc_sort_tuple(ve_1)
             ve_1 = profit_shift(ve_1)
-        if "vot_ens_best" in df_name:
+        if "vot_ens_best" is df_name:
             ve_best.append((df, df_name))
             ve_best = asc_sort_tuple(ve_best)
             ve_best = profit_shift(ve_best)
-        if "reg_ens_full" in df_name:
+        if "reg_ens_full" is df_name:
             re_full.append((df, df_name))
             re_full = asc_sort_tuple(re_full)
             re_full = profit_shift(re_full)
-        if "reg_ens_best" in df_name:
+        if "reg_ens_best" is df_name:
             re_best.append((df, df_name))
             re_best = asc_sort_tuple(re_best)
             re_best = profit_shift(re_best)
-        if "reg_ens_best_cv" in df_name:
+        if "reg_ens_best_cv" is df_name:
             re_best_cv.append((df, df_name))
             re_best_cv = asc_sort_tuple(re_best_cv)
             re_best_cv = profit_shift(re_best_cv)
