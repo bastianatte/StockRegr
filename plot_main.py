@@ -9,6 +9,8 @@ from config import main_conf as mc
 from config import plot_conf as pc
 from classes.Plotter import Plotter
 from utils.misc import get_logger, csv_maker
+from sklearn.metrics import r2_score, mean_squared_error
+
 
 logger = get_logger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -91,43 +93,40 @@ def multiple_profit_plot(df_list, output):
         df_name = item[1]
         if pc["daily_profit"] in df.columns.to_list():
             dfs_profit_list.append((df, df_name))
-            print(df_name)
+            # print(df_name)
 
-    rf, lr, gbr, knr, lasso, enr, dtr, vef, ve1, veb, ef, eb, ebcv = create_list_of_same_models(dfs_profit_list)
+    profit_model_dict = create_list_of_profit_models(dfs_profit_list)
 
-    # make profit plot and create statistical dataframe
-    rf_df, rf_stat_dict, rf_stat_df = make_profit_and_create_stat_dict(rf, output, "rf")
-    lr_df, lr_stat_dict, lr_stat_df = make_profit_and_create_stat_dict(lr, output, "lr")
-    dtr_df, dtr_stat_dict, dtr_stat_df = make_profit_and_create_stat_dict(dtr, output, "dtr")
-    gbr_df, gbr_stat_dict, gbr_stat_df = make_profit_and_create_stat_dict(gbr, output, "gbr")
-    knr_df, knr_stat_dict, knr_stat_df = make_profit_and_create_stat_dict(knr, output, "knr")
-    lasso_df, lasso_stat_dict, lasso_stat_df = make_profit_and_create_stat_dict(lasso, output, "lasso")
-    enr_df, enr_stat_dict, enr_stat_df = make_profit_and_create_stat_dict(enr, output, "enr")
-    vef_df, vef_stat_dict, vef_stat_df = make_profit_and_create_stat_dict(vef, output, "vot_ens_full")
-    ve1_df, ve1_stat_dict, ve1_stat_df = make_profit_and_create_stat_dict(ve1, output, "vot_ens_1")
-    veb_df, veb_stat_dict, veb_stat_df = make_profit_and_create_stat_dict(veb, output, "vot_ens_best")
-    ref_df, ref_stat_dict, ref_stat_df = make_profit_and_create_stat_dict(ef, output, "reg_ens_full")
-    reb_df, reb_stat_dict, reb_stat_df = make_profit_and_create_stat_dict(eb, output, "reg_ens_best")
-    rebcv_df, rebcv_stat_dict, rebcv_stat_df = make_profit_and_create_stat_dict(ebcv, output, "reg_ens_best_cv")
+    dataframe_list = []
+    dataframe_list_single = []
+    dataframe_list_ens = []
+    metrics_df = pd.DataFrame(columns=["metrics"])
+    for item in profit_model_dict:
+        logger.info("item= {}".format(item))
+        tup = []
+        for item2 in profit_model_dict[item]:
+            tup.append((profit_model_dict[item][item2], item2))
+        tup = asc_sort_tuple(tup)
+        sorted_tup = profit_shift(tup)
+        for itm in sorted_tup:
+            logger.info("df shape {}, item: {}".format(itm[0].shape, itm[1]))
+        mod_df_list, mod_st_df = make_profit_and_create_stat_dict(sorted_tup, output, item)
+        dataframe_list += mod_df_list
+        if "single" in item:
+            dataframe_list_single += mod_df_list
+        if "ens" in item:
+            dataframe_list_ens += mod_df_list
+        metrics_df = metrics_df.merge(mod_st_df, on='metrics', how='outer')
+    metrics_df_to_plot = metrics_df.T.reset_index()
+    print(metrics_df_to_plot)
+    logger.info("n single models: {}, n ens models: {}".format(len(dataframe_list_single), len(dataframe_list_ens)))
 
-    # filling statistical variables
-    rf_stat_df = rf_stat_df.join(lr_stat_df["lr"])
-    rf_stat_df = rf_stat_df.join(dtr_stat_df["dtr"])
-    rf_stat_df = rf_stat_df.join(gbr_stat_df["gbr"])
-    rf_stat_df = rf_stat_df.join(knr_stat_df["knr"])
-    rf_stat_df = rf_stat_df.join(lasso_stat_df["lasso"])
-    rf_stat_df = rf_stat_df.join(enr_stat_df["enr"])
-    rf_stat_df = rf_stat_df.join(vef_stat_df["vot_ens_full"])
-    rf_stat_df = rf_stat_df.join(ve1_stat_df["vot_ens_1"])
-    rf_stat_df = rf_stat_df.join(veb_stat_df["vot_ens_best"])
-    rf_stat_df = rf_stat_df.join(ref_stat_df["reg_ens_full"])
-    rf_stat_df = rf_stat_df.join(reb_stat_df["reg_ens_best"])
-    rf_stat_df = rf_stat_df.join(rebcv_stat_df["reg_ens_best_cv"])
-    make_metrics_plot(rf_stat_df, output)
-    df_total_list = (lr_df + rf_df + dtr_df + gbr_df + knr_df + lasso_df + enr_df + vef_df + ve1_df +
-                     veb_df + ref_df + reb_df + rebcv_df)
-    make_profit_plot(df_total_list, output, "total")
-    logger.info("Multiple profit done plots done!!")
+    # important plot
+    make_profit_plot(dataframe_list, output, "total")
+    make_profit_plot(dataframe_list_single, output, 'total_base_model')
+    make_profit_plot(dataframe_list_ens, output, 'total_ensemble')
+    make_metrics_plot(metrics_df_to_plot, output)
+    logger.info("Profit Plot Done!")
 
 
 def make_metrics_plot(df, output):
@@ -148,7 +147,7 @@ def make_profit_and_create_stat_dict(model, output, model_string):
     stat_dict = make_pyfolio_plot(model_df, output, stat_dict_string)
     # make_pyfolio_plot(model_df, output, stat_dict_string)
     stat_df = pd.DataFrame(stat_dict.items(), columns=["metrics", model_string])
-    return model_df, stat_dict, stat_df
+    return model_df, stat_df
 
 
 def create_unique_df(tup, name):
@@ -205,93 +204,93 @@ def profit_shift(df_list):
     return sorted_tuple
 
 
-def create_list_of_same_models(df_list):
+def create_list_of_profit_models(df_list):
+    model_dict = {}
+    model_lst = []
+    for item in df_list:
+        df_name = item[1]
+        df_name = ''.join([i for i in df_name if not i.isdigit()])
+        df_name = df_name.replace('profit_', '').replace('--', '')
+        model_lst.append(df_name)
+    models_names = set(model_lst)
+    for name in models_names:
+        model_dict[name] = {}
+        for item in df_list:
+            df = item[0]
+            df_name = item[1]
+            if name in df_name:
+                model_dict[name][df_name] = df
+    logger.info("dictionary keys: {}".format(model_dict.keys()))
+    return model_dict
+
+
+def make_score(df_list, output):
     """
-    It split the df list in as many list
-    as used models.
-    :param df_list: list of dataframe
-    :return: list
+    Make global plot long short profit.
+    :param df_list: list of pd dfs
+    :param output: output path
+    :return: None
     """
-    logger.info("...in create list of same models")
-    rf = []
-    lr = []
-    gbr = []
-    knr = []
-    lasso = []
-    enr = []
-    dtr = []
-    ve_full = []
-    ve_1 = []
-    ve_best = []
-    re_full = []
-    re_best = []
-    re_best_cv = []
+    logger.info("in score plots")
     for item in df_list:
         df = item[0]
         df_name = item[1]
-        if "lr" in df_name:
-            lr.append((df, df_name))
-            lr = asc_sort_tuple(lr)
-            lr = profit_shift(lr)
-        if "rf" in df_name:
-            rf.append((df, df_name))
-            rf = asc_sort_tuple(rf)
-            rf = profit_shift(rf)
-        if "gbr" in df_name:
-            gbr.append((df, df_name))
-            gbr = asc_sort_tuple(gbr)
-            gbr = profit_shift(gbr)
-        if "knr" in df_name:
-            knr.append((df, df_name))
-            knr = asc_sort_tuple(knr)
-            knr = profit_shift(knr)
-        if "lasso" in df_name:
-            lasso.append((df, df_name))
-            lasso = asc_sort_tuple(lasso)
-            lasso = profit_shift(lasso)
-        if "enr" in df_name:
-            enr.append((df, df_name))
-            enr = asc_sort_tuple(enr)
-            enr = profit_shift(enr)
-        if "dtr" in df_name:
-            dtr.append((df, df_name))
-            dtr = asc_sort_tuple(dtr)
-            dtr = profit_shift(dtr)
-        if "vot_ens_full" in df_name:
-            ve_full.append((df, df_name))
-            ve_full = asc_sort_tuple(ve_full)
-            ve_full = profit_shift(ve_full)
-        if "vot_ens_1" in df_name:
-            ve_1.append((df, df_name))
-            ve_1 = asc_sort_tuple(ve_1)
-            ve_1 = profit_shift(ve_1)
-        if "vot_ens_best" in df_name:
-            ve_best.append((df, df_name))
-            ve_best = asc_sort_tuple(ve_best)
-            ve_best = profit_shift(ve_best)
-        if "reg_ens_full" in df_name:
-            re_full.append((df, df_name))
-            re_full = asc_sort_tuple(re_full)
-            re_full = profit_shift(re_full)
-        if "reg_ens_best" in df_name and "cv" not in df_name:
-            re_best.append((df, df_name))
-            re_best = asc_sort_tuple(re_best)
-            re_best = profit_shift(re_best)
-        if "reg_ens_best_cv" in df_name:
-            re_best_cv.append((df, df_name))
-            re_best_cv = asc_sort_tuple(re_best_cv)
-            re_best_cv = profit_shift(re_best_cv)
-    logger.info("Create list of same models done!")
-    return rf, lr, gbr, knr, lasso, enr, dtr, ve_full, ve_1, ve_best, re_full, re_best, re_best_cv
+        if pc['prediction'] in df_name:
+            score_ens_df = pd.DataFrame(columns=['model', 'r2', 'mse'])
+            score_single_df = pd.DataFrame(columns=['model', 'r2', 'mse'])
+            for i in df.columns.to_list():
+                if pc['prediction'] in i:
+                    scr_r2 = r2_score(df[mc["label"]], df[i])
+                    scr_mse = mean_squared_error(df[mc["label"]], df[i])
+                    score_single_df = score_single_df.append(
+                        {'model': i,
+                         'r2': scr_r2,
+                         'mse': scr_mse},
+                        ignore_index=True
+                    )
+                if 'ens' in i:
+                    ens_scr_r2 = r2_score(df[mc["label"]], df[i])
+                    ens_scr_mse = mean_squared_error(df[mc["label"]], df[i])
+                    score_ens_df = score_ens_df.append(
+                        {'model': i,
+                         'r2': ens_scr_r2,
+                         'mse': ens_scr_mse},
+                        ignore_index=True
+                    )
+            logger.info("df name: {}, single score df shape: {} ".format(df_name, score_single_df.shape))
+            logger.info("df name: {}, ens score df shape: {} ".format(df_name, score_ens_df.shape))
+            # single_name = str(df_name) + "_single"
+            # ens_name = str(df_name) + "_ens"
+            # score_ens_df = score_ens_df.sort_values(by=['r2'], ascending=False)
+            # score_single_df = score_single_df.sort_values(by=['r2'], ascending=False)
+            # plotter_sng = Plotter(score_single_df, single_name, output)
+            # plotter_sng.plot_score_table()
+            # plotter_ens = Plotter(score_ens_df, ens_name, output)
+            # plotter_ens.plot_ens_score_table()
+            plotter_sng = Plotter(score_single_df.sort_values(by=['r2'], ascending=False),
+                                  str(df_name) + "_single",
+                                  output)
+            plotter_sng.plot_score_table()
+            plotter_ens = Plotter(score_ens_df.sort_values(by=['r2'], ascending=False),
+                                  str(df_name) + "_ens",
+                                  output)
+            plotter_ens.plot_ens_score_table()
 
 
 if __name__ == '__main__':
     logger.info("~~~### plot section is now ACTIVE ###~~~")
 
-    # single profit plot
+    # create output folder
     profit_output = create_folder(args.output, pc["profit_plot_dir"])
+    score_output = create_folder(args.output, pc['score_dir'])
+
+    # single profit plot
     dfs = plot_exe(args.input, profit_output)
 
     # multiple profit plot
     multiple_profit_plot(dfs, profit_output)
+
+    # score plots
+    make_score(dfs, score_output)
+
     logger.info("WELL DONE, plot main done!")
