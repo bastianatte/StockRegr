@@ -71,6 +71,7 @@ class ProfitPlotter(object):
             df_name = item[1]
             df_lsp = df.loc[df.index.max(), "shifted_long_short_profit"]
             tup.append((df_name, df_lsp))
+            tup = disc_sort_tuple(tup)
         # sorted_tup = disc_sort_tuple(tup)
         plt.figure(figsize=(5, 12))
         # for item in sorted_tup:
