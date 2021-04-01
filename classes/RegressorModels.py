@@ -1,12 +1,16 @@
 import logging
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, StackingRegressor
-from sklearn.linear_model import LinearRegression, Lasso, ElasticNet  # RidgeCV
+from sklearn.linear_model import LinearRegression, Lasso, ElasticNet, LogisticRegression # RidgeCV
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import VotingRegressor
-# from sklearn.svm import LinearSVR, SVR
+from sklearn.svm import LinearSVR, SVR
+import numpy as np
 from sklearn.neighbors import KNeighborsRegressor
 from utils.misc import get_logger
 from config import regress_models_conf as rmc
+from sklearn.model_selection import TimeSeriesSplit, cross_val_predict, GridSearchCV
+from mlxtend.regressor import StackingRegressor as StackingRegresorMLX
+from itertools import combinations
 
 model_log = get_logger(__name__)
 model_log.setLevel(logging.INFO)
@@ -18,59 +22,12 @@ class RegressorModels(object):
         self.y_train = y_train
         self.x_test = x_test
 
-    def voting_regrssor_ensemble_full(self):
-        lr, lr_pred = self.linear_regr()
-        rf, rf_pred = self.random_forest_regr()
-        gbr, gbr_pred = self.gradient_boost_regr()
-        knr, knr_pred = self.kneighbors_regr()
-        lasso, lasso_pred = self.lasso_regr()
-        enr, enr_pred = self.elastic_net_regr()
-        dtr, dtr_pred = self.decis_tree_regr()
-        er = VotingRegressor([
-            ('lr', lr),
-            ('rf', rf),
-            ('gbr', gbr),
-            ('knr', knr),
-            ('lasso', lasso),
-            ('enr', enr),
-            ('dtr', dtr)
-            ], n_jobs=-1)
-        return er.fit(self.x_train, self.y_train).predict(self.x_test)
-
-    def voting_regressor_ensemble_1(self):
-        lr, lr_pred = self.linear_regr()
-        rf, rf_pred = self.random_forest_regr()
-        gbr, gbr_pred = self.gradient_boost_regr()
-        lasso, lasso_pred = self.lasso_regr()
-        enr, enr_pred = self.elastic_net_regr()
-        er = VotingRegressor([
-            ('lr', lr),
-            ('rf', rf),
-            ('gbr', gbr),
-            ('lasso', lasso),
-            ('enr', enr),
-            ], n_jobs=-1)
-        return er.fit(self.x_train, self.y_train).predict(self.x_test)
-
-    def voting_regressor_ensemble_best(self):
-        lr, lr_pred = self.linear_regr()
-        rf, rf_pred = self.random_forest_regr()
-        lasso, lasso_pred = self.lasso_regr()
-        enr, enr_pred = self.elastic_net_regr()
-        er = VotingRegressor([
-            ('lr', lr),
-            ('rf', rf),
-            ('lasso', lasso),
-            ('enr', enr),
-            ], n_jobs=-1)
-        return er.fit(self.x_train, self.y_train).predict(self.x_test)
-
     def random_forest_regr(self):
         """
         Random Forest fit
         :return: prediction
         """
-        model = RandomForestRegressor(max_features=rmc["rf_max_features"])
+        model = RandomForestRegressor(random_state=123)
         model.fit(self.x_train, self.y_train)
         return model, model.predict(self.x_test)
 
@@ -128,7 +85,36 @@ class RegressorModels(object):
         model.fit(self.x_train, self.y_train)
         return model, model.predict(self.x_test)
 
-    def reg_ensemble_full(self):
+    def voting_regressor_ensemble_1(self):
+        lr, lr_pred = self.linear_regr()
+        lasso, lasso_pred = self.lasso_regr()
+        rf, rf_pred = self.random_forest_regr()
+        er = VotingRegressor([
+            ('lr', lr),
+            ('lasso', lasso),
+            ("rf", rf)
+            ], n_jobs=-1)
+        return er.fit(self.x_train, self.y_train).predict(self.x_test)
+
+    def voting_regressor_ensemble_2(self):
+        lr, lr_pred = self.linear_regr()
+        rf, rf_pred = self.random_forest_regr()
+        er = VotingRegressor([
+            ('lr', lr),
+            ('rf', rf),
+            ], n_jobs=-1)
+        return er.fit(self.x_train, self.y_train).predict(self.x_test)
+
+    def voting_regressor_ensemble_3(self):
+        lr, lr_pred = self.linear_regr()
+        rf, rf_pred = self.random_forest_regr()
+        er = VotingRegressor([
+            ('lr', lr),
+            ('rf', rf),
+            ], n_jobs=-1)
+        return er.fit(self.x_train, self.y_train).predict(self.x_test)
+
+    def reg_ensemble_1(self):
         """
         Regressors Ensemble
         :return: ensempre prediction
@@ -136,19 +122,18 @@ class RegressorModels(object):
         lr, lr_pred = self.linear_regr()
         rf, rf_pred = self.random_forest_regr()
         lasso, lasso_pred = self.lasso_regr()
-        el, el_pred = self.elastic_net_regr()
-        dt, dt_pred = self.decis_tree_regr()
-        knr, knr_pred = self.kneighbors_regr()
-        gbr, gbr_pred = self.gradient_boost_regr()
+        # el, el_pred = self.elastic_net_regr()
+        # dt, dt_pred = self.decis_tree_regr()
+        # knr, knr_pred = self.kneighbors_regr()
+        # gbr, gbr_pred = self.gradient_boost_regr()
         estimators = [
-            ("str", dt),
-            ("eln", el),
+            # ("str", dt),
+            # ("eln", el),
             ("lasso", lasso),
-            ("knr", knr),
-            ("gbr", gbr),
+            # ("knr", knr),
+            # ("gbr", gbr),
             ("lr", lr),
             ("rf", rf)
-
         ]
         reg = StackingRegressor(estimators=estimators,
                                 final_estimator=RandomForestRegressor(),
@@ -156,7 +141,7 @@ class RegressorModels(object):
         reg.fit(self.x_train, self.y_train)
         return reg.predict(self.x_test)
 
-    def reg_ensemble_best_cv(self):
+    def reg_ensemble_2(self):
         """
         Regressors Ensemble
         :return: ensempre prediction
@@ -164,9 +149,32 @@ class RegressorModels(object):
         lr, lr_pred = self.linear_regr()
         rf, rf_pred = self.random_forest_regr()
         lasso, lasso_pred = self.lasso_regr()
-        el, el_pred = self.elastic_net_regr()
+        lor = LogisticRegression()
+        # el, el_pred = self.elastic_net_regr()
         estimators = [
-            ("eln", el),
+            # ("eln", el),
+            ("lasso", lasso),
+            ("lr", lr),
+            ("rf", rf)
+        ]
+        reg = StackingRegressor(estimators=estimators,
+                                final_estimator=RandomForestRegressor(),
+                                cv=5, #10
+                                n_jobs=-1)
+        reg.fit(self.x_train, self.y_train)
+        return reg.predict(self.x_test)
+
+    def reg_ensemble_3(self):
+        """
+        Regressors Ensemble
+        :return: ensempre prediction
+        """
+        lr, lr_pred = self.linear_regr()
+        rf, rf_pred = self.random_forest_regr()
+        lasso, lasso_pred = self.lasso_regr()
+        # el, el_pred = self.elastic_net_regr()
+        estimators = [
+            # ("eln", el),
             ("lasso", lasso),
             ("lr", lr),
             ("rf", rf)
@@ -174,12 +182,12 @@ class RegressorModels(object):
         ]
         reg = StackingRegressor(estimators=estimators,
                                 final_estimator=RandomForestRegressor(),
-                                cv=5,
+                                cv=50,
                                 n_jobs=-1)
         reg.fit(self.x_train, self.y_train)
         return reg.predict(self.x_test)
 
-    def reg_ensemble_best(self):
+    def reg_ensemble_4(self):
         """
         Regressors Ensemble
         :return: ensempre prediction
@@ -187,17 +195,106 @@ class RegressorModels(object):
         lr, lr_pred = self.linear_regr()
         rf, rf_pred = self.random_forest_regr()
         lasso, lasso_pred = self.lasso_regr()
-        el, el_pred = self.elastic_net_regr()
         estimators = [
-            ("eln", el),
-            ("lasso", lasso),
             ("lr", lr),
-            ("rf", rf)
-
+            ("rf", rf),
+            ("lasso", lasso)
         ]
         reg = StackingRegressor(estimators=estimators,
-                                final_estimator=RandomForestRegressor(n_estimators=10,
-                                                                      random_state=42),
+                                final_estimator=RandomForestRegressor(),
+                                cv=200,
                                 n_jobs=-1)
         reg.fit(self.x_train, self.y_train)
         return reg.predict(self.x_test)
+
+    def reg_ensemble_5(self):
+        """
+        Regressors Ensemble
+        :return: ensempre prediction
+        """
+        param = {'final_estimator__max_features': [1, 5],
+                 'final_estimator__n_jobs': [1, -1, 5]}
+        lr, lr_pred = self.linear_regr()
+        rf, rf_pred = self.random_forest_regr()
+        estimators = [
+            ("lr", lr),
+            ("rf", rf)
+        ]
+        # tss = TimeSeriesSplit(n_splits=2, test_size=10)
+        tss = TimeSeriesSplit(gap=20, max_train_size=None, n_splits=10, test_size=None)
+        reg = StackingRegressor(estimators=estimators,
+                                final_estimator=RandomForestRegressor(),
+                                cv=tss,
+                                n_jobs=-1)
+        reg.fit(self.x_train, self.y_train)
+        return reg.predict(self.x_test)
+
+    def mlx_reg_1(self):
+        lr, lr_pred = self.linear_regr()
+        rf, rf_pred = self.random_forest_regr()
+        lasso, lasso_pred = self.lasso_regr()
+        sclf = StackingRegresorMLX(
+            regressors=[lr, rf, lasso],
+            meta_regressor=RandomForestRegressor(ccp_alpha=0.1,
+                                                 max_features="auto",
+                                                 n_estimators=30)
+        )
+        sclf.fit(self.x_train, self.y_train)
+        return sclf.predict(self.x_test)
+
+    def mlx_reg_2(self):
+        lr, lr_pred = self.linear_regr()
+        rf, rf_pred = self.random_forest_regr()
+        lasso, lasso_pred = self.lasso_regr()
+        # lor = LogisticRegression()
+        sclf = StackingRegresorMLX(
+            regressors=[lr, rf, lasso],
+            meta_regressor=RandomForestRegressor(ccp_alpha=50,
+                                                 max_features="log2",
+                                                 n_estimators=500,
+                                                 n_jobs=-1))
+
+        params = {'lasso__alpha': [1.0, 10.0, 0.1],
+                  'meta_regressor__n_estimators': [10, 50, 100],
+                  # 'meta_regressor__ccp_alpha': np.arange(0, 1, 0.001).tolist(),
+                  # "meta_regressor__max_features": ["auto", "sqrt", "log2"],
+                  "meta_regressor__ccp_alpha": [1, 10, 0.1]
+                  }
+
+        grid = GridSearchCV(
+            estimator=sclf,
+            param_grid=params,
+            cv=3,
+            refit=True
+        )
+        # print(sclf.get_params().keys())
+        grid.fit(self.x_train, self.y_train)
+        print("Best: %f using %s" % (grid.best_score_, grid.best_params_))
+        return grid.predict(self.x_test)
+
+    def ensemble_loop(self):
+        model_dict = {
+            "lr": LinearRegression(),
+            "rf": RandomForestRegressor(),
+            "lasso": Lasso(),
+            "el": ElasticNet(),
+            "dt": DecisionTreeRegressor(),
+            "kn": KNeighborsRegressor(),
+            "bgr": GradientBoostingRegressor()
+            # "svr": SVR()
+            # "lin_svr": LinearSVR()
+        }
+        comb = combinations(model_dict, 3)
+        for i in list(comb):
+            models = [model_dict[y] for y in i]
+            # print(i, models)
+            label = "_".join(i) + "_ens"
+            yield label, StackingRegresorMLX(regressors=models,
+                                             meta_regressor=RandomForestRegressor(n_estimators=200,
+                                                                                  random_state=123,
+                                                                                  n_jobs=-1))
+
+    def fitpred_ensemble(self):
+        for idx, mod in self.ensemble_loop():
+            mod.fit(self.x_train, self.y_train)
+            yield idx, mod.predict(self.x_test)
