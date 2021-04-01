@@ -38,7 +38,7 @@ def create_df(ipt, opt):
     print("folder: ", folder)
     for csv_file in os.listdir(ipt):
         if fnmatch.fnmatch(csv_file, '*.csv'):
-            if csv_cnt == -1:
+            if csv_cnt == 100:
                 break
             else:
                 csv_cnt += 1
@@ -46,14 +46,15 @@ def create_df(ipt, opt):
                     logger.info("Reading csv... {} stocks done!".format(csv_cnt))
                 csv, csv_string = csv_maker(str(ipt), csv_file)
                 df_temp = pd.read_csv(csv, parse_dates=[mc["date_clm"]])
-                df_temp = preprocess_df(df_temp, csv_string)
+                df_temp, scaled_df_temp = preprocess_df(df_temp, csv_string)
                 if csv_cnt <= 3:
                     stock_output = create_folder(folder, csv_string)
                     print("csv folder: ", stock_output)
                     if mc["prefit_plot_flag"] is True:
                         prefplot = prefit_plotter(df_temp, stock_output, csv_string)
                         prefplot.prefit_plotter_exe()
-                dfs.append(df_temp)
+                # dfs.append(df_temp)
+                dfs.append(scaled_df_temp)
     df = pd.concat(dfs)
     return df
 
@@ -85,6 +86,8 @@ def split_df(filtered_df, stock_name, date_start, date_end):
     :return: 
     """
     df_splitted = filter_df(filtered_df, stock_name, date_start, date_end)
+    # x = df_splitted[mc["features_TI"]]
+    # x = df_splitted[mc["features_LR"]]
     x = df_splitted[mc["features"]]
     y = df_splitted[mc["label"]]
     return df_splitted, x, y
@@ -111,7 +114,9 @@ def create_prediction(df_test, xtrain, ytrain, xtest):
     :param xtest: X test
     :return: pred df
     """
+
     model = RegressorModels(xtrain, ytrain, xtest)
+    # single models
     rf_mod, pred_rf = model.random_forest_regr()
     lr_mod, pred_lr = model.linear_regr()
     gbr_mod, pred_gbr = model.gradient_boost_regr()
@@ -119,26 +124,21 @@ def create_prediction(df_test, xtrain, ytrain, xtest):
     lasso_mod, pred_lasso = model.lasso_regr()
     enr_mod, pred_enr = model.elastic_net_regr()
     dtr_mod, pred_dtr = model.decis_tree_regr()
-    pred_vot_ens_full = model.voting_regrssor_ensemble_full()
-    pred_vot_ens_1 = model.voting_regressor_ensemble_1()
-    pred_vot_ens_best = model.voting_regressor_ensemble_best()
-    pred_reg_ens_full = model.reg_ensemble_full()
-    pred_reg_ens_best = model.reg_ensemble_best()
-    pred_reg_ens_best_cv = model.reg_ensemble_best_cv()
+
     pred = df_test.copy()
+    for idx, predictions in model.fitpred_ensemble():
+        # logger.info("{}, ens {}".format(cnt, idx))
+        pred[idx] = predictions
+
+    # single models
     pred[mc["lr"]] = pred_lr
     pred[mc["rf"]] = pred_rf
+    pred[mc["lasso"]] = pred_lasso
     pred[mc["gbr"]] = pred_gbr
     pred[mc["knr"]] = pred_knr
-    pred[mc["lasso"]] = pred_lasso
     pred[mc["enr"]] = pred_enr
     pred[mc["dtr"]] = pred_dtr
-    pred[mc["vot_ens_full"]] = pred_vot_ens_full
-    pred[mc["vot_ens_1"]] = pred_vot_ens_1
-    pred[mc["vot_ens_best"]] = pred_vot_ens_best
-    pred[mc["reg_ens_full"]] = pred_reg_ens_full
-    pred[mc["reg_ens_best"]] = pred_reg_ens_best
-    pred[mc["reg_ens_best_cv"]] = pred_reg_ens_best_cv
+
     return pred
 
 
@@ -177,6 +177,8 @@ if __name__ == '__main__':
     wnd_cnt = 1
     dataframe = create_df(args.input, args.output)
     dataframe = dataframe.dropna()
+    path_csv = create_folder(args.output, "csv")
+    path_train_csv = create_folder(path_csv, "Train_Features")
     logger.info("dataframe columns: {}".format(dataframe.columns))
     logger.info("features columns: {}".format(mc["features"]))
     logger.info("{} train windows.".format(len(mc["train_window"])))
@@ -197,15 +199,19 @@ if __name__ == '__main__':
         wnd_cnt += 1
         for stock in set(dataframe[mc["ticker"]].values):
             stock_cnt += 1
-            if stock_cnt % 50 == 0:
+            if stock_cnt % 1 == 0:
                 logger.info("{} stocks fitted.".format(stock_cnt))
             df_stock_train, x_train, y_train = split_df(dataframe, stock, date_start=window[0], date_end=window[1])
             df_stock_test, x_test, y_test = split_df(dataframe, stock, test_start, test_end)
+            if df_stock_train.shape[0] == 0:
+                continue
+            # print("in main", stock, df_stock_train.shape, df_stock_test.shape)
             if len(df_stock_train) + len(df_stock_test) < thresh_raw:
                 bad_df_list.append(stock)
                 continue
             df_pred = create_prediction(df_stock_test, x_train, y_train, x_test)
             df_pred_list.append(df_pred)
+            store_csv(x_train, path_train_csv, f"train-{stock}-{y_from}-{y_to}")
         stop = time.time()
         logger.info("{} bad stocks over {}".format(
             len(bad_df_list),
@@ -215,22 +221,23 @@ if __name__ == '__main__':
             (stop-window_start)/60))
         # concatenation to a single pred df
         dataframe_pred = pd.concat(df_pred_list)
-        path_csv = create_folder(args.output, "csv")
         # store main csv
         store_csv(dataframe, path_csv, f"general-{y_from}-{y_to}")
         store_csv(dataframe_pred, path_csv, f"pred-{y_from}-{y_to}")
         # create rank for each model and store relevant quantities
-        create_rank_and_store(dataframe_pred, mc["rf"], path_csv, y_from, y_to, "rf")
-        create_rank_and_store(dataframe_pred, mc["lr"], path_csv, y_from, y_to, "lr")
-        create_rank_and_store(dataframe_pred, mc["gbr"], path_csv, y_from, y_to, "gbr")
-        create_rank_and_store(dataframe_pred, mc["knr"], path_csv, y_from, y_to, "knr")
-        create_rank_and_store(dataframe_pred, mc["lasso"], path_csv, y_from, y_to, "lasso")
-        create_rank_and_store(dataframe_pred, mc["enr"], path_csv, y_from, y_to, "enr")
-        create_rank_and_store(dataframe_pred, mc["dtr"], path_csv, y_from, y_to, "dtr")
-        create_rank_and_store(dataframe_pred, mc["vot_ens_full"], path_csv, y_from, y_to, "vot_ens_full")
-        create_rank_and_store(dataframe_pred, mc["vot_ens_1"], path_csv, y_from, y_to, "vot_ens_1")
-        create_rank_and_store(dataframe_pred, mc["vot_ens_best"], path_csv, y_from, y_to, "vot_ens_best")
-        create_rank_and_store(dataframe_pred, mc["reg_ens_full"], path_csv, y_from, y_to, "reg_ens_full")
-        create_rank_and_store(dataframe_pred, mc["reg_ens_best"], path_csv, y_from, y_to, "reg_ens_best")
-        create_rank_and_store(dataframe_pred, mc["reg_ens_best_cv"], path_csv, y_from, y_to, "reg_ens_best_cv")
-    logger.info("Main Analysis Done")
+
+        list_clm = dataframe_pred.columns.tolist()
+        # print(list_clm)
+        for i in range(len(list_clm)):
+            if "ens" in list_clm[i]:
+                # print(list_clm[i])
+                create_rank_and_store(dataframe_pred, list_clm[i], path_csv, y_from, y_to, list_clm[i])
+        # single models
+        create_rank_and_store(dataframe_pred, mc["rf"], path_csv, y_from, y_to, "rf_single")
+        create_rank_and_store(dataframe_pred, mc["lr"], path_csv, y_from, y_to, "lr_single")
+        create_rank_and_store(dataframe_pred, mc["gbr"], path_csv, y_from, y_to, "gbr_single")
+        create_rank_and_store(dataframe_pred, mc["knr"], path_csv, y_from, y_to, "knr_single")
+        create_rank_and_store(dataframe_pred, mc["lasso"], path_csv, y_from, y_to, "lasso_single")
+        create_rank_and_store(dataframe_pred, mc["enr"], path_csv, y_from, y_to, "enr_single")
+        create_rank_and_store(dataframe_pred, mc["dtr"], path_csv, y_from, y_to, "dtr_single")
+        logger.info("Main Analysis Done")
