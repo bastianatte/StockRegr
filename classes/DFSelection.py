@@ -1,6 +1,7 @@
 from config import main_conf as mc
 import logging
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 from ta.momentum import ROCIndicator, WilliamsRIndicator, RSIIndicator, stochrsi_k
 from ta.trend import EMAIndicator, MACD
 from ta.volume import AccDistIndexIndicator
@@ -26,6 +27,26 @@ def preprocess_df(df, csv_string):
     df = create_next_day_return(df)
     df = lagged_daily_indicators(df)
     # Indicators
+    df = create_tech_indicators(df)
+    scaled_df = scale_df(df)
+    return df, scaled_df
+
+
+def scale_df(df):
+    scaled_df = df.copy()
+    col_names = mc["features"]
+    features = scaled_df[col_names]
+    trans_feat = MinMaxScaler().fit_transform(features.values)
+    scaled_df[col_names] = trans_feat
+    return scaled_df
+
+
+def create_tech_indicators(df):
+    """
+    Create Technical Indicators TI
+    :param df: dataframe
+    :return: dataframe
+    """
     df = ta_ema(df)
     df = ta_stochastic(df)
     df = ta_price_rate_of_change(df)
