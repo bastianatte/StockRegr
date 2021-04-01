@@ -23,11 +23,10 @@ def rank_exe(df, pred_column):
         data_date = data_date.drop_duplicates(subset=[mc["ticker"]])  # is that useful?
         long_part = data_date.iloc[:rc["stocks_number"]]
         short_part = data_date.iloc[-rc["stocks_number"]:]
+        # print("long: ", pred_column, "\n", long_part[["Date", "ticker", pred_column, mc["label"]]].head(5))
+        # print("short: ", pred_column, "\n", short_part[["Date", "ticker", pred_column, mc["label"]]].head(5))
         dp, lsp = long_short_profit(long_part, short_part, lsp)
         df_daily_profit.loc[i] = [date, lsp, dp]
-        # print(data_date)
-        # print("long: ", pred_column, "\n", long_part[["Date", pred_column, mc["label"]]].head(5))
-        # print("short: ", pred_column, "\n", short_part[["Date", pred_column, mc["label"]]].head(5))
         dfs_long.append(long_part)
         dfs_short.append(short_part)
     long = pd.concat(dfs_long)
@@ -46,5 +45,6 @@ def long_short_profit(long, short, lsp):
     long_daily_profit = (long[mc["label"]]).mean()
     short_daily_profit = ((-1) * short[mc["label"]]).mean()
     daily_profit = rc["long_share"] * long_daily_profit + rc["short_share"] * short_daily_profit
+    # rank_log.info("ldp: {}, sdp: {}, dp: {}, lsp: {} ".format(long_daily_profit, short_daily_profit, daily_profit, lsp))
     lsp += daily_profit
     return daily_profit, lsp
