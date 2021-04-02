@@ -5,6 +5,7 @@ main_conf = {
     "prefit_plot_flag": False,
     "columns": ["Date", "Close", "Open", "Volume", "High", "Low"],
     "train_window": [
+        (dt.datetime.strptime("2000-01-01", "%Y-%m-%d"), dt.datetime.strptime("2003-01-01", "%Y-%m-%d")),
         (dt.datetime.strptime("2001-01-01", "%Y-%m-%d"), dt.datetime.strptime("2004-01-01", "%Y-%m-%d")),
         (dt.datetime.strptime("2002-01-01", "%Y-%m-%d"), dt.datetime.strptime("2005-01-01", "%Y-%m-%d")),
         (dt.datetime.strptime("2003-01-01", "%Y-%m-%d"), dt.datetime.strptime("2006-01-01", "%Y-%m-%d")),
@@ -47,6 +48,7 @@ main_conf = {
     "lasso": "lasso_pred",
     "enr": "enr_pred",
     "dtr": "dtr_pred",
+    "best": "best_pred",
     "vot_ens_full": "vot_ens_full_pred",
     "vot_ens_1": "vot_ens_1_pred",
     "vot_ens_best": "vot_ens_best_pred",
