@@ -117,16 +117,40 @@ def multiple_profit_plot(df_list, output):
         if "ens" in item:
             dataframe_list_ens += mod_df_list
         metrics_df = metrics_df.merge(mod_st_df, on='metrics', how='outer')
-    metrics_df_to_plot = metrics_df.T.reset_index()
-    print(metrics_df_to_plot)
-    logger.info("n single models: {}, n ens models: {}".format(len(dataframe_list_single), len(dataframe_list_ens)))
 
+    metrics_df_to_plot = make_transpose(metrics_df)
+    # print(metrics_df_to_plot)
+    logger.info("n single models: {}, n ens models: {}".format(len(dataframe_list_single), len(dataframe_list_ens)))
     # important plot
-    make_profit_plot(dataframe_list, output, "total")
-    make_profit_plot(dataframe_list_single, output, 'total_base_model')
-    make_profit_plot(dataframe_list_ens, output, 'total_ensemble')
+    sorted_df_list = sorted(dataframe_list,
+                            key= lambda x:float(x[0]['shifted_long_short_profit'].iloc[-1]),
+                            reverse=True)
+    sorted_df_list_ens = sorted(dataframe_list_ens,
+                                key=lambda x: float(x[0]['shifted_long_short_profit'].iloc[-1]),
+                                reverse=True)
+    sorted_df_list_single = sorted(dataframe_list_single,
+                                   key=lambda x: float(x[0]['shifted_long_short_profit'].iloc[-1]),
+                                   reverse=True)
+    make_profit_plot(sorted_df_list[:10], output, "total")
+    make_profit_plot(sorted_df_list_single, output, 'total_base_model')
+    make_profit_plot(sorted_df_list_ens[:10], output, 'total_ensemble')
     make_metrics_plot(metrics_df_to_plot, output)
     logger.info("Profit Plot Done!")
+
+
+def make_transpose(df):
+    df_t = df.T
+    df_t = df_t.rename(columns={0: 'sharpe_ratio',
+                                1: 'annual return',
+                                2: 'mean return',
+                                3: 'standard dev',
+                                4: 'Sortino Ratio',
+                                5: 'MaxDD'})
+    df_t = df_t.drop(['metrics'])
+    df_t = df_t.sort_values(by=['sharpe_ratio'], ascending=False)
+    df_t = df_t.reset_index()
+    df_t = df_t.rename(columns={'index': 'models'})
+    return df_t
 
 
 def make_metrics_plot(df, output):
@@ -293,4 +317,4 @@ if __name__ == '__main__':
     # score plots
     make_score(dfs, score_output)
 
-    logger.info("WELL DONE, plot main done!")
+    logger.info("WELL DONE, plot_main.py successfully run!")
