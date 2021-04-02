@@ -36,7 +36,7 @@ def scale_df(df):
     scaled_df = df.copy()
     col_names = mc["features"]
     features = scaled_df[col_names]
-    trans_feat = MinMaxScaler().fit_transform(features.values)
+    trans_feat = MinMaxScaler(feature_range=(-1, 1)).fit_transform(features.values)
     scaled_df[col_names] = trans_feat
     return scaled_df
 
