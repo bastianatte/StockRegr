@@ -249,16 +249,14 @@ class RegressorModels(object):
         # lor = LogisticRegression()
         sclf = StackingRegresorMLX(
             regressors=[lr, rf, lasso],
-            meta_regressor=RandomForestRegressor(ccp_alpha=50,
-                                                 max_features="log2",
+            meta_regressor=RandomForestRegressor(max_features="log2",
                                                  n_estimators=500,
                                                  n_jobs=-1))
 
         params = {'lasso__alpha': [1.0, 10.0, 0.1],
                   'meta_regressor__n_estimators': [10, 50, 100],
-                  # 'meta_regressor__ccp_alpha': np.arange(0, 1, 0.001).tolist(),
-                  # "meta_regressor__max_features": ["auto", "sqrt", "log2"],
-                  "meta_regressor__ccp_alpha": [1, 10, 0.1]
+                  'meta_regressor__ccp_alpha': np.arange(0, 1, 0.001).tolist(),
+                  "meta_regressor__max_features": ["auto", "sqrt", "log2"],
                   }
 
         grid = GridSearchCV(
@@ -276,25 +274,39 @@ class RegressorModels(object):
         model_dict = {
             "lr": LinearRegression(),
             "rf": RandomForestRegressor(),
-            "lasso": Lasso(),
-            "el": ElasticNet(),
+            # "lasso": Lasso(),
+            # "el": ElasticNet(),
             "dt": DecisionTreeRegressor(),
             "kn": KNeighborsRegressor(),
             "bgr": GradientBoostingRegressor()
-            # "svr": SVR()
-            # "lin_svr": LinearSVR()
         }
+        # for ncomb in range(2, 4):
         comb = combinations(model_dict, 3)
         for i in list(comb):
             models = [model_dict[y] for y in i]
             # print(i, models)
             label = "_".join(i) + "_ens"
-            yield label, StackingRegresorMLX(regressors=models,
-                                             meta_regressor=RandomForestRegressor(n_estimators=200,
-                                                                                  random_state=123,
-                                                                                  n_jobs=-1))
+            yield label, StackingRegresorMLX(regressors=models, meta_regressor=RandomForestRegressor(random_state=123,
+                                                                                                     n_jobs=-1))
+
+    # def fitpred_ensemble(self):
+    #     for idx, mod in self.ensemble_loop():
+    #         mod.fit(self.x_train, self.y_train)
+    #         yield idx, mod.predict(self.x_test)
 
     def fitpred_ensemble(self):
         for idx, mod in self.ensemble_loop():
-            mod.fit(self.x_train, self.y_train)
-            yield idx, mod.predict(self.x_test)
+            params = {'meta_regressor__n_estimators': [500, 250, 700],
+                      'meta_regressor__min_samples_leaf': [2, 5, 8],
+                      "meta_regressor__max_features": [1, "sqrt", 0.1]
+                      }
+
+            grid = GridSearchCV(
+                estimator=mod,
+                param_grid=params,
+                cv=3,
+                refit=True
+            )
+            grid.fit(self.x_train, self.y_train)
+            print("Best: %f using %s" % (grid.best_score_, grid.best_params_))
+            yield idx, grid.predict(self.x_test)
