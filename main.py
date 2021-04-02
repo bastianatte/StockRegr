@@ -11,6 +11,7 @@ from utils.misc import get_logger, create_folder, csv_maker, store_csv
 from utils.ranking import rank_exe
 from classes.RegressorModels import RegressorModels
 from classes.PrefitPlotter import prefit_plotter
+from sklearn.metrics import mean_squared_error
 
 parser = argparse.ArgumentParser(description="Load flag to run StockRegression")
 parser.add_argument('-i', '--input', type=str, metavar='', required=True,
@@ -35,10 +36,9 @@ def create_df(ipt, opt):
     csv_cnt = 0
     dfs = []
     folder = create_folder(opt, "prefit_plot")
-    print("folder: ", folder)
     for csv_file in os.listdir(ipt):
         if fnmatch.fnmatch(csv_file, '*.csv'):
-            if csv_cnt == 100:
+            if csv_cnt == -1:
                 break
             else:
                 csv_cnt += 1
@@ -49,7 +49,7 @@ def create_df(ipt, opt):
                 df_temp, scaled_df_temp = preprocess_df(df_temp, csv_string)
                 if csv_cnt <= 3:
                     stock_output = create_folder(folder, csv_string)
-                    print("csv folder: ", stock_output)
+                    logger.info("csv folder: {}".format(stock_output))
                     if mc["prefit_plot_flag"] is True:
                         prefplot = prefit_plotter(df_temp, stock_output, csv_string)
                         prefplot.prefit_plotter_exe()
@@ -117,28 +117,33 @@ def create_prediction(df_test, xtrain, ytrain, xtest):
 
     model = RegressorModels(xtrain, ytrain, xtest)
     # single models
+    # lasso_mod, pred_lasso = model.lasso_regr()
+    # enr_mod, pred_enr = model.elastic_net_regr()
     rf_mod, pred_rf = model.random_forest_regr()
     lr_mod, pred_lr = model.linear_regr()
     gbr_mod, pred_gbr = model.gradient_boost_regr()
     knr_mod, pred_knr = model.kneighbors_regr()
-    lasso_mod, pred_lasso = model.lasso_regr()
-    enr_mod, pred_enr = model.elastic_net_regr()
     dtr_mod, pred_dtr = model.decis_tree_regr()
+    # pred_grid_ens = model.mlx_reg_2()
 
     pred = df_test.copy()
+
+    # ensemble
     for idx, predictions in model.fitpred_ensemble():
-        # logger.info("{}, ens {}".format(cnt, idx))
         pred[idx] = predictions
+    # pred["grid_ens"] = pred_grid_ens
 
     # single models
+    # pred[mc["lasso"]] = pred_lasso
+    # pred[mc["enr"]] = pred_enr
     pred[mc["lr"]] = pred_lr
     pred[mc["rf"]] = pred_rf
-    pred[mc["lasso"]] = pred_lasso
     pred[mc["gbr"]] = pred_gbr
     pred[mc["knr"]] = pred_knr
-    pred[mc["enr"]] = pred_enr
     pred[mc["dtr"]] = pred_dtr
 
+    # best model
+    pred = select_best_model_per_stock(pred)
     return pred
 
 
@@ -169,6 +174,37 @@ def create_rank_and_store(df, model_clm, out_path, y_start, y_end, model_name):
     store_csv(df_long, out_path, f"{model_name}_long-{y_start}-{y_end}")
     store_csv(df_short, out_path, f"{model_name}_short-{y_start}-{y_end}")
     store_csv(df_profit, out_path, f"profit_{model_name}-{y_start}-{y_end}")
+
+
+def select_best_model_per_stock(preddf):
+    """
+    It select the best model by comparing the mean
+    squared error between all of them.
+    It is done for each single stock.
+    An updated version, with a new columns with the best
+    prediction, of the input prediction
+    dataframe is returned.
+    :param preddf: prediction dataframe
+    :return: prediction dataframe
+    """
+    prediction_df = preddf.copy()
+    score_df = pd.DataFrame(columns=['model', 'mse'])
+    df_label = prediction_df.iloc[:, lambda df: df.columns.str.contains(mc['label'], case=False)]
+    df_prd = prediction_df.iloc[:, lambda df: df.columns.str.contains('ens|pred', case=False)]
+    for clm_name in df_prd.columns:
+        mse = mean_squared_error(df_label[mc['label']], df_prd[clm_name])
+        score_df = score_df.append(
+            {'model': clm_name,
+             'mse': mse},
+            ignore_index=True
+        )
+    score_df = score_df.sort_values(by=['mse'], ascending=True)
+    # print(score_df.head(2))
+    # print(type(score_df['model'].iloc[0]), score_df['model'].iloc[0])
+    logger.info("best model found: {}".format(score_df['model'].iloc[0]))
+    best_model_name = score_df['model'].iloc[0]
+    preddf['best_pred'] = prediction_df[best_model_name]
+    return preddf
 
 
 if __name__ == '__main__':
@@ -203,10 +239,7 @@ if __name__ == '__main__':
                 logger.info("{} stocks fitted.".format(stock_cnt))
             df_stock_train, x_train, y_train = split_df(dataframe, stock, date_start=window[0], date_end=window[1])
             df_stock_test, x_test, y_test = split_df(dataframe, stock, test_start, test_end)
-            if df_stock_train.shape[0] == 0:
-                continue
-            # print("in main", stock, df_stock_train.shape, df_stock_test.shape)
-            if len(df_stock_train) + len(df_stock_test) < thresh_raw:
+            if (df_stock_train.shape[0] == 0) or (len(df_stock_train) + len(df_stock_test) < thresh_raw):
                 bad_df_list.append(stock)
                 continue
             df_pred = create_prediction(df_stock_test, x_train, y_train, x_test)
@@ -233,11 +266,12 @@ if __name__ == '__main__':
                 # print(list_clm[i])
                 create_rank_and_store(dataframe_pred, list_clm[i], path_csv, y_from, y_to, list_clm[i])
         # single models
+        create_rank_and_store(dataframe_pred, mc["best"], path_csv, y_from, y_to, "best_single")
         create_rank_and_store(dataframe_pred, mc["rf"], path_csv, y_from, y_to, "rf_single")
         create_rank_and_store(dataframe_pred, mc["lr"], path_csv, y_from, y_to, "lr_single")
         create_rank_and_store(dataframe_pred, mc["gbr"], path_csv, y_from, y_to, "gbr_single")
         create_rank_and_store(dataframe_pred, mc["knr"], path_csv, y_from, y_to, "knr_single")
-        create_rank_and_store(dataframe_pred, mc["lasso"], path_csv, y_from, y_to, "lasso_single")
-        create_rank_and_store(dataframe_pred, mc["enr"], path_csv, y_from, y_to, "enr_single")
+        # create_rank_and_store(dataframe_pred, mc["lasso"], path_csv, y_from, y_to, "lasso_single")
+        # create_rank_and_store(dataframe_pred, mc["enr"], path_csv, y_from, y_to, "enr_single")
         create_rank_and_store(dataframe_pred, mc["dtr"], path_csv, y_from, y_to, "dtr_single")
         logger.info("Main Analysis Done")
