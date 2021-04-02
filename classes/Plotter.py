@@ -57,7 +57,7 @@ class Plotter(object):
         fig.patch.set_visible(False)
         ax.axis('off')
         ax.axis('tight')
-        tabla = ax.table(cellText=self.df.values, colLabels=self.df.columns, loc='center')
+        tabla = ax.table(cellText=self.df.values, rowLabels=self.df.index,  colLabels=self.df.columns, loc='center')
         tabla.scale(0.7, 0.5)
         tabla.auto_set_font_size(False)
         tabla.set_fontsize(4)
