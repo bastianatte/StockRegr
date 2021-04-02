@@ -16,6 +16,7 @@ class prefit_plotter(object):
     def prefit_plotter_exe(self):
         prefit_plotter_log.info("Create features plots for {} stock".format(self.csv_name))
         self.plot_close_vs_open()
+        self.plot_close()
         self.plot_high_vs_low()
         self.plot_ema_vs_close()
         self.plot_ema()
@@ -34,6 +35,18 @@ class prefit_plotter(object):
         self.plot_disp()
         self.plot_hist_disp()
         self.plot_corr_matrix()
+
+    def plot_close(self):
+        # self.df.set_index('Date', inplace=True)
+        plt.plot(self.df.index, self.df["Close"], "", linewidth=0.2, label=self.df['ticker'].iloc[-1])
+        plt.legend(loc='upper left', frameon=False)
+        # plt.rcParams["figure.figsize"] = (140, 0.1)
+        # plt.figure(figsize=(200, 10))
+        plt.xlabel("year")
+        plt.ylabel("price")
+        figname = os.path.join(self.output, self.df['ticker'].iloc[-1] + "_close" + ".png")
+        plt.savefig(figname, dpi=200)
+        plt.close()
 
     def plot_close_vs_open(self):
         self.df.set_index('Date', inplace=True)
