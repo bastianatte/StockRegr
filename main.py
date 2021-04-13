@@ -38,7 +38,7 @@ def create_df(ipt, opt):
     folder = create_folder(opt, "prefit_plot")
     for csv_file in os.listdir(ipt):
         if fnmatch.fnmatch(csv_file, '*.csv'):
-            if csv_cnt == -1:
+            if csv_cnt == 50:
                 break
             else:
                 csv_cnt += 1
@@ -119,18 +119,25 @@ def create_prediction(df_test, xtrain, ytrain, xtest):
     # single models
     # lasso_mod, pred_lasso = model.lasso_regr()
     # enr_mod, pred_enr = model.elastic_net_regr()
-    rf_mod, pred_rf = model.random_forest_regr()
     lr_mod, pred_lr = model.linear_regr()
+
+    # rf_mod, pred_rf = model.random_forest_regr()
+    rf_mod, pred_rf = model.random_forest_regr_tun()
+
     gbr_mod, pred_gbr = model.gradient_boost_regr()
-    knr_mod, pred_knr = model.kneighbors_regr()
-    dtr_mod, pred_dtr = model.decis_tree_regr()
-    # pred_grid_ens = model.mlx_reg_2()
+    # gbr_mod, pred_gbr = model.gradient_boost_regr_tun()
+
+    # knr_mod, pred_knr = model.kneighbors_regr()
+    knr_mod, pred_knr = model.kneighbors_regr_tun()
+
+    # dtr_mod, pred_dtr = model.decis_tree_regr()
+    dtr_mod, pred_dtr = model.decision_tree_regr_tun()
 
     pred = df_test.copy()
 
     # ensemble
-    for idx, predictions in model.fitpred_ensemble():
-        pred[idx] = predictions
+    # for idx, predictions in model.fitpred_ensemble():
+    #     pred[idx] = predictions
     # pred["grid_ens"] = pred_grid_ens
 
     # single models

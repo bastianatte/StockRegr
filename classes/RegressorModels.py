@@ -31,6 +31,24 @@ class RegressorModels(object):
         model.fit(self.x_train, self.y_train)
         return model, model.predict(self.x_test)
 
+    def random_forest_regr_tun(self):
+        model = RandomForestRegressor(random_state=42,
+                                      n_jobs=-1)
+        params = {'n_estimators': [500, 250, 700],
+                  'min_samples_leaf': [2, 5, 8],
+                  "max_features": [1, "sqrt", 0.1]
+                  }
+
+        grid = GridSearchCV(
+            estimator=model,
+            param_grid=params,
+            cv=3,
+            refit=True
+        )
+        grid.fit(self.x_train, self.y_train)
+        print("Best RF: %f using %s" % (grid.best_score_, grid.best_params_))
+        return model, grid.predict(self.x_test)
+
     def linear_regr(self):
         """
         Linear Regression fit
@@ -49,6 +67,28 @@ class RegressorModels(object):
         model.fit(self.x_train, self.y_train)
         return model, model.predict(self.x_test)
 
+    def gradient_boost_regr_tun(self):
+        """
+        Gradient Boost Regressor fit
+        :return: prediction
+        """
+        model = GradientBoostingRegressor(random_state=42)
+        params = {'n_estimators': [500, 250, 700],
+                  'min_samples_leaf': [2, 5, 8],
+                  # "max_features": [1, "sqrt", 0.1],
+                  'learning_rate': [0.1, 1, 10]
+                  }
+
+        grid = GridSearchCV(
+            estimator=model,
+            param_grid=params,
+            cv=3,
+            refit=True
+        )
+        grid.fit(self.x_train, self.y_train)
+        print("Best GBR: %f using %s" % (grid.best_score_, grid.best_params_))
+        return model, grid.predict(self.x_test)
+
     def kneighbors_regr(self):
         """
         K Neighbors regression fit
@@ -57,6 +97,22 @@ class RegressorModels(object):
         model = KNeighborsRegressor()
         model.fit(self.x_train, self.y_train)
         return model, model.predict(self.x_test)
+
+    def kneighbors_regr_tun(self):
+        model = KNeighborsRegressor(n_jobs=-1)
+        params = {'n_neighbors': [5, 25, 70],
+                  'leaf_size': [10, 50, 80]
+                  }
+
+        grid = GridSearchCV(
+            estimator=model,
+            param_grid=params,
+            cv=3,
+            refit=True
+        )
+        grid.fit(self.x_train, self.y_train)
+        print("Best KNR: %f using %s" % (grid.best_score_, grid.best_params_))
+        return model, grid.predict(self.x_test)
 
     def lasso_regr(self):
         """
@@ -84,6 +140,23 @@ class RegressorModels(object):
         model = DecisionTreeRegressor()
         model.fit(self.x_train, self.y_train)
         return model, model.predict(self.x_test)
+
+    def decision_tree_regr_tun(self):
+        model = DecisionTreeRegressor(random_state=42)
+        params = {'min_samples_leaf': [2, 5, 8],
+                  "min_samples_split": [2, 10, 20],
+                  "max_features": [1, "sqrt", 0.1],
+                  }
+
+        grid = GridSearchCV(
+            estimator=model,
+            param_grid=params,
+            cv=3,
+            refit=True
+        )
+        grid.fit(self.x_train, self.y_train)
+        print("Best DTR: %f using %s" % (grid.best_score_, grid.best_params_))
+        return model, grid.predict(self.x_test)
 
     def voting_regressor_ensemble_1(self):
         lr, lr_pred = self.linear_regr()
@@ -289,24 +362,24 @@ class RegressorModels(object):
             yield label, StackingRegresorMLX(regressors=models, meta_regressor=RandomForestRegressor(random_state=123,
                                                                                                      n_jobs=-1))
 
-    # def fitpred_ensemble(self):
-    #     for idx, mod in self.ensemble_loop():
-    #         mod.fit(self.x_train, self.y_train)
-    #         yield idx, mod.predict(self.x_test)
-
     def fitpred_ensemble(self):
         for idx, mod in self.ensemble_loop():
-            params = {'meta_regressor__n_estimators': [500, 250, 700],
-                      'meta_regressor__min_samples_leaf': [2, 5, 8],
-                      "meta_regressor__max_features": [1, "sqrt", 0.1]
-                      }
+            mod.fit(self.x_train, self.y_train)
+            yield idx, mod.predict(self.x_test)
 
-            grid = GridSearchCV(
-                estimator=mod,
-                param_grid=params,
-                cv=3,
-                refit=True
-            )
-            grid.fit(self.x_train, self.y_train)
-            print("Best: %f using %s" % (grid.best_score_, grid.best_params_))
-            yield idx, grid.predict(self.x_test)
+    # def fitpred_ensemble(self):
+    #     for idx, mod in self.ensemble_loop():
+    #         params = {'meta_regressor__n_estimators': [500, 250, 700],
+    #                   'meta_regressor__min_samples_leaf': [2, 5, 8],
+    #                   "meta_regressor__max_features": [1, "sqrt", 0.1]
+    #                   }
+    #
+    #         grid = GridSearchCV(
+    #             estimator=mod,
+    #             param_grid=params,
+    #             cv=3,
+    #             refit=True
+    #         )
+    #         grid.fit(self.x_train, self.y_train)
+    #         print("Best: %f using %s" % (grid.best_score_, grid.best_params_))
+    #         yield idx, grid.predict(self.x_test)
